@@ -18,20 +18,29 @@ function detectAgents(homedir) {
 }
 
 function copySkills(srcDir, destDir) {
-  const entries = fs.readdirSync(srcDir).filter(e =>
+  const categories = fs.readdirSync(srcDir).filter(e =>
     fs.statSync(path.join(srcDir, e)).isDirectory()
   );
-  for (const skill of entries) {
-    const dest = path.join(destDir, skill);
-    fs.mkdirSync(dest, { recursive: true });
-    const files = fs.readdirSync(path.join(srcDir, skill)).filter(f =>
-      fs.statSync(path.join(srcDir, skill, f)).isFile()
+  let total = 0;
+  for (const category of categories) {
+    const categoryPath = path.join(srcDir, category);
+    const skills = fs.readdirSync(categoryPath).filter(e =>
+      fs.statSync(path.join(categoryPath, e)).isDirectory()
     );
-    for (const file of files) {
-      fs.copyFileSync(path.join(srcDir, skill, file), path.join(dest, file));
+    for (const skill of skills) {
+      const skillSrc = path.join(categoryPath, skill);
+      const skillDest = path.join(destDir, skill);
+      fs.mkdirSync(skillDest, { recursive: true });
+      const files = fs.readdirSync(skillSrc).filter(f =>
+        fs.statSync(path.join(skillSrc, f)).isFile()
+      );
+      for (const file of files) {
+        fs.copyFileSync(path.join(skillSrc, file), path.join(skillDest, file));
+      }
+      total++;
     }
   }
-  return entries.length;
+  return total;
 }
 
 function runInstall(skillsSrc, homedir) {

@@ -1,6 +1,32 @@
-# @andrewcodesit/skills
+# Skills for day-to-day agentic engineering
 
-Distributes agent skills to AI coding agents (Claude Code, Codex, Gemini CLI).
+> Practical skills for developers and teams who want AI agents embedded in their real workflows — not just demos.
+
+## Why this exists
+
+Most agent skill sets are one-offs built for a specific project. This collection is different: every skill here is something you reach for repeatedly, designed to fit into the kind of workflows real engineering teams actually run — sprint planning, code review, project management, publishing.
+
+## Skills
+
+### Context
+
+| Skill | What it does |
+|---|---|
+| `init-context-files` | Creates a `context/` directory with structured markdown files that give agents deep, persistent project knowledge |
+
+### Publishing
+
+| Skill | What it does |
+|---|---|
+| `post-to-threads` | Drafts and posts dev-focused content to Meta Threads |
+
+### Engineering
+
+_Coming soon_
+
+### Project Management
+
+_Coming soon_
 
 ## Install
 

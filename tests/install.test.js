@@ -6,17 +6,37 @@ const path = require('path');
 
 const { copySkills, detectAgents, runInstall } = require('../scripts/install.js');
 
-test('copySkills copies all skill folders and returns count', () => {
+test('copySkills copies skills from category subfolders and returns total count', () => {
   const src = fs.mkdtempSync(path.join(os.tmpdir(), 'skills-src-'));
   const dest = fs.mkdtempSync(path.join(os.tmpdir(), 'skills-dest-'));
 
-  fs.mkdirSync(path.join(src, 'my-skill'));
-  fs.writeFileSync(path.join(src, 'my-skill', 'SKILL.md'), '---\nname: my-skill\n---\n');
+  fs.mkdirSync(path.join(src, 'context', 'my-skill'), { recursive: true });
+  fs.writeFileSync(path.join(src, 'context', 'my-skill', 'SKILL.md'), '---\nname: my-skill\n---\n');
 
   const count = copySkills(src, dest);
 
   assert.equal(count, 1);
+  // installed flat into dest — no category subdir
   assert.ok(fs.existsSync(path.join(dest, 'my-skill', 'SKILL.md')));
+
+  fs.rmSync(src, { recursive: true });
+  fs.rmSync(dest, { recursive: true });
+});
+
+test('copySkills counts skills across multiple categories', () => {
+  const src = fs.mkdtempSync(path.join(os.tmpdir(), 'skills-src-'));
+  const dest = fs.mkdtempSync(path.join(os.tmpdir(), 'skills-dest-'));
+
+  fs.mkdirSync(path.join(src, 'context', 'skill-a'), { recursive: true });
+  fs.writeFileSync(path.join(src, 'context', 'skill-a', 'SKILL.md'), '---\nname: skill-a\n---\n');
+  fs.mkdirSync(path.join(src, 'engineering', 'skill-b'), { recursive: true });
+  fs.writeFileSync(path.join(src, 'engineering', 'skill-b', 'SKILL.md'), '---\nname: skill-b\n---\n');
+
+  const count = copySkills(src, dest);
+
+  assert.equal(count, 2);
+  assert.ok(fs.existsSync(path.join(dest, 'skill-a', 'SKILL.md')));
+  assert.ok(fs.existsSync(path.join(dest, 'skill-b', 'SKILL.md')));
 
   fs.rmSync(src, { recursive: true });
   fs.rmSync(dest, { recursive: true });
@@ -26,9 +46,9 @@ test('copySkills overwrites existing files', () => {
   const src = fs.mkdtempSync(path.join(os.tmpdir(), 'skills-src-'));
   const dest = fs.mkdtempSync(path.join(os.tmpdir(), 'skills-dest-'));
 
-  fs.mkdirSync(path.join(src, 'my-skill'));
-  fs.writeFileSync(path.join(src, 'my-skill', 'SKILL.md'), 'new content');
-  fs.mkdirSync(path.join(dest, 'my-skill'));
+  fs.mkdirSync(path.join(src, 'context', 'my-skill'), { recursive: true });
+  fs.writeFileSync(path.join(src, 'context', 'my-skill', 'SKILL.md'), 'new content');
+  fs.mkdirSync(path.join(dest, 'my-skill'), { recursive: true });
   fs.writeFileSync(path.join(dest, 'my-skill', 'SKILL.md'), 'old content');
 
   copySkills(src, dest);
@@ -56,7 +76,7 @@ test('detectAgents returns dirs resolved against provided homedir', () => {
 test('runInstall does not throw when no agent dirs exist', () => {
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'empty-home-'));
   const skillsSrc = path.join(home, 'skills');
-  fs.mkdirSync(skillsSrc);
+  fs.mkdirSync(path.join(skillsSrc, 'context'), { recursive: true });
 
   assert.doesNotThrow(() => runInstall(skillsSrc, home));
 
