@@ -2,16 +2,30 @@
   "name": "@andrewcodesit/skills",
   "version": "1.0.0",
   "description": "Distributes agent skills to AI coding agents",
-  "bin": { "skills": "./bin/skills.js" },
+  "bin": {
+    "skills": "./bin/skills.js"
+  },
   "scripts": {
     "postinstall": "node scripts/install.js",
-    "test": "node --test tests/install.test.js tests/validate-skills.test.js tests/cli-update.test.js"
+    "test": "node --test tests/install.test.js tests/validate-skills.test.js tests/cli-update.test.js",
+    "prepare": "husky"
   },
-  "files": ["skills/", "scripts/", "bin/"],
-  "engines": { "node": ">=18.0.0" },
+  "files": [
+    "skills/",
+    "scripts/",
+    "bin/"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/andrewcodesit/skills.git"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.5.3",
+    "@commitlint/config-conventional": "^20.5.3",
+    "husky": "^9.1.7"
   }
 }
