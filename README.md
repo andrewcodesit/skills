@@ -1,10 +1,31 @@
 # Skills for day-to-day agentic engineering
 
+[![npm version](https://img.shields.io/npm/v/@andrewcodesit/skills.svg)](https://www.npmjs.com/package/@andrewcodesit/skills)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 > Practical skills for developers and teams who want AI agents embedded in their real workflows — not just demos.
 
 ## Why this exists
 
 Most agent skill sets are one-offs built for a specific project. This collection is different: every skill here is something you reach for repeatedly, designed to fit into the kind of workflows real engineering teams actually run — sprint planning, code review, project management.
+
+## How it works
+
+A skill is a `SKILL.md` file with YAML frontmatter (`name`, `description`) plus instructions the agent follows when it matches your request. This package groups skills into categories under `skills/<category>/<skill-name>/SKILL.md` and copies them into whichever agent directories it finds on your machine.
+
+```
+skills/
+  context/
+    init-context-files/SKILL.md
+  engineering/
+    cleanup/SKILL.md
+    code-review/SKILL.md
+    execute/SKILL.md
+  project-management/
+    plan/SKILL.md
+    plan-review/SKILL.md
+    handoff/SKILL.md
+```
 
 ## Skills
 
@@ -52,10 +73,29 @@ skills update
 
 Checks the npm registry for a newer version and upgrades if one is available.
 
-## Release
+## Contributing
 
-1. Add or edit skills in `skills/`
-2. Bump `version` in `package.json`
-3. `git tag v1.x.x && git push --tags`
+1. Create `skills/<category>/<skill-name>/SKILL.md` with valid frontmatter:
 
-GitHub Actions validates, tests, and publishes automatically — no manual publish step.
+   ```markdown
+   ---
+   name: <skill-name>
+   description: Use when ...
+   ---
+
+   Skill instructions here.
+   ```
+
+2. Run `node scripts/validate-skills.js` to confirm `name` and `description` are present.
+3. Run `npm test` before opening a pull request.
+
+## Release (maintainers)
+
+1. Bump `version` in `package.json`
+2. `git tag v1.x.x && git push --tags`
+
+GitHub Actions validates, tests, and publishes to npm automatically — no manual publish step.
+
+## License
+
+[MIT](LICENSE)
