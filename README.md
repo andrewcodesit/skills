@@ -9,11 +9,21 @@ Most skill collections are one-offs, built for a single project and abandoned. T
 
 ## Install
 
+Pick which skills you want with an interactive picker:
+
 ```bash
-npm install -g @andrewcodesit/skills
+npx @andrewcodesit/skills add
 ```
 
-Skills are copied automatically into whichever agent directories exist on your machine:
+Or install specific skills by name (also works in scripts/CI):
+
+```bash
+npx @andrewcodesit/skills add plan execute
+```
+
+`npx @andrewcodesit/skills list` shows every available skill.
+
+Skills are copied into whichever agent directories exist on your machine:
 
 | Agent       | Directory           |
 | ----------- | ------------------- |
@@ -21,7 +31,7 @@ Skills are copied automatically into whichever agent directories exist on your m
 | Codex       | `~/.agents/skills/` |
 | Gemini CLI  | `~/.gemini/skills/` |
 
-Run `skills update` later to pull the latest version from npm.
+Prefer everything, all at once? `npm install -g @andrewcodesit/skills` installs the full set automatically, and `skills update` later pulls the latest version from npm.
 
 ## Why These Skills Exist
 

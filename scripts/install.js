@@ -17,28 +17,37 @@ function detectAgents(homedir) {
   return AGENT_DIRS.map(a => ({ name: a.name, dir: path.join(homedir, a.rel) }));
 }
 
-function copySkills(srcDir, destDir) {
+function listSkills(srcDir) {
   const categories = fs.readdirSync(srcDir).filter(e =>
     fs.statSync(path.join(srcDir, e)).isDirectory()
   );
-  let total = 0;
+  const skills = [];
   for (const category of categories) {
     const categoryPath = path.join(srcDir, category);
-    const skills = fs.readdirSync(categoryPath).filter(e =>
+    const skillNames = fs.readdirSync(categoryPath).filter(e =>
       fs.statSync(path.join(categoryPath, e)).isDirectory()
     );
-    for (const skill of skills) {
-      const skillSrc = path.join(categoryPath, skill);
-      const skillDest = path.join(destDir, skill);
-      fs.mkdirSync(skillDest, { recursive: true });
-      const files = fs.readdirSync(skillSrc).filter(f =>
-        fs.statSync(path.join(skillSrc, f)).isFile()
-      );
-      for (const file of files) {
-        fs.copyFileSync(path.join(skillSrc, file), path.join(skillDest, file));
-      }
-      total++;
+    for (const name of skillNames) {
+      skills.push({ name, category, srcPath: path.join(categoryPath, name) });
     }
+  }
+  return skills;
+}
+
+function copySkills(srcDir, destDir, filterNames) {
+  const skills = listSkills(srcDir);
+  let total = 0;
+  for (const skill of skills) {
+    if (filterNames && !filterNames.has(skill.name)) continue;
+    const skillDest = path.join(destDir, skill.name);
+    fs.mkdirSync(skillDest, { recursive: true });
+    const files = fs.readdirSync(skill.srcPath).filter(f =>
+      fs.statSync(path.join(skill.srcPath, f)).isFile()
+    );
+    for (const file of files) {
+      fs.copyFileSync(path.join(skill.srcPath, file), path.join(skillDest, file));
+    }
+    total++;
   }
   return total;
 }
@@ -72,7 +81,11 @@ function runInstall(skillsSrc, homedir) {
 }
 
 if (require.main === module) {
-  runInstall(path.join(__dirname, '..', 'skills'), os.homedir());
+  // Only auto-install everything for `npm install -g`. Skip for `npx ... add`,
+  // local installs, etc. — npm_config_global is only set to "true" on -g installs.
+  if (process.env.npm_config_global === 'true') {
+    runInstall(path.join(__dirname, '..', 'skills'), os.homedir());
+  }
 }
 
-module.exports = { detectAgents, copySkills, runInstall };
+module.exports = { detectAgents, listSkills, copySkills, runInstall };
