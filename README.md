@@ -4,7 +4,7 @@
 
 ## Why this exists
 
-Most agent skill sets are one-offs built for a specific project. This collection is different: every skill here is something you reach for repeatedly, designed to fit into the kind of workflows real engineering teams actually run — sprint planning, code review, project management, publishing.
+Most agent skill sets are one-offs built for a specific project. This collection is different: every skill here is something you reach for repeatedly, designed to fit into the kind of workflows real engineering teams actually run — sprint planning, code review, project management.
 
 ## Skills
 
@@ -14,19 +14,21 @@ Most agent skill sets are one-offs built for a specific project. This collection
 |---|---|
 | `init-context-files` | Creates a `context/` directory with structured markdown files that give agents deep, persistent project knowledge |
 
-### Publishing
+### Engineering
 
 | Skill | What it does |
 |---|---|
-| `post-to-threads` | Drafts and posts dev-focused content to Meta Threads |
-
-### Engineering
-
-_Coming soon_
+| `cleanup` | Scans the repo for dead code, debug artifacts, and other cruft, then fixes it category by category with confirmation |
+| `code-review` | Deep code review that acts like a blunt senior engineer |
+| `execute` | Runs an approved plan, then reviews the implementation against spec and repo standards |
 
 ### Project Management
 
-_Coming soon_
+| Skill | What it does |
+|---|---|
+| `plan` | Writes an implementation plan for a feature, task, or spec |
+| `plan-review` | Reviews an implementation plan and critiques it before execution |
+| `handoff` | Generates a comprehensive handoff spec so another agent can pick up the session |
 
 ## Install
 
