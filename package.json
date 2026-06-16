@@ -1,6 +1,6 @@
 {
   "name": "@andrewcodesit/skills",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Distributes agent skills to AI coding agents",
   "bin": {
     "skills": "./bin/skills.js"

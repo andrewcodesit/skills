@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -13,8 +17,11 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22.14.0'
           registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Validate skills
         run: node scripts/validate-skills.js
@@ -24,5 +31,3 @@ jobs:
 
       - name: Publish
         run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
