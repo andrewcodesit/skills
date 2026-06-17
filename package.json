@@ -2,18 +2,12 @@
   "name": "@andrewcodesit/skills",
   "version": "1.1.0",
   "description": "Distributes agent skills to AI coding agents",
-  "bin": {
-    "skills": "./bin/skills.js"
-  },
   "scripts": {
-    "postinstall": "node scripts/install.js",
-    "test": "node --test tests/install.test.js tests/validate-skills.test.js tests/cli-update.test.js",
+    "test": "node --test tests/validate-skills.test.js",
     "prepare": "husky"
   },
   "files": [
-    "skills/",
-    "scripts/",
-    "bin/"
+    "skills/"
   ],
   "engines": {
     "node": ">=18.0.0"

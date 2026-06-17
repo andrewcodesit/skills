@@ -1,6 +1,5 @@
 # Skills for day-to-day agentic engineering
 
-[![npm version](https://img.shields.io/npm/v/@andrewcodesit/skills.svg)](https://www.npmjs.com/package/@andrewcodesit/skills)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 My agent skills for getting real engineering work done with Claude Code, Codex, and Gemini CLI - not demos.
@@ -9,29 +8,19 @@ Most skill collections are one-offs, built for a single project and abandoned. T
 
 ## Install
 
-Pick which skills you want with an interactive picker:
-
 ```bash
-npx @andrewcodesit/skills add
+npx skills@latest add andrewcodesit/skills
 ```
 
-Or install specific skills by name (also works in scripts/CI):
+Pick the skills you want from the interactive prompt. Works with Claude Code, Codex, Cursor, Windsurf, and [70+ other agents](https://github.com/vercel-labs/skills#supported-agents) automatically.
+
+Install a specific skill without the picker:
 
 ```bash
-npx @andrewcodesit/skills add plan execute
+npx skills@latest add andrewcodesit/skills --skill code-review
 ```
 
-`npx @andrewcodesit/skills list` shows every available skill.
-
-Skills are copied into whichever agent directories exist on your machine:
-
-| Agent       | Directory           |
-| ----------- | ------------------- |
-| Claude Code | `~/.claude/skills/` |
-| Codex       | `~/.agents/skills/` |
-| Gemini CLI  | `~/.gemini/skills/` |
-
-Prefer everything, all at once? `npm install -g @andrewcodesit/skills` installs the full set automatically, and `skills update` later pulls the latest version from npm.
+> Previously used `npm install -g @andrewcodesit/skills`? That still works but is no longer the recommended path. Switch to the command above.
 
 ## Why These Skills Exist
 
@@ -72,6 +61,8 @@ Dead code, leftover debug logs, and unused imports pile up quietly across sessio
 ## How a skill is structured
 
 Each skill is a `SKILL.md` file with YAML frontmatter (`name`, `description`) plus instructions the agent follows when it matches your request, grouped under `skills/<category>/<skill-name>/SKILL.md`.
+
+Skills follow the [Agent Skills specification](https://agentskills.io) and are compatible with any agent that supports it.
 
 ## License
 
