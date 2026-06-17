@@ -5,11 +5,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-# Run all tests
+# Run tests
 npm test
-
-# Run a single test file
-node --test tests/install.test.js
 
 # Validate skills manually
 node scripts/validate-skills.js
@@ -19,20 +16,21 @@ No build step — plain Node.js, no transpilation, no bundler.
 
 ## Architecture
 
-This is an npm package (`@andrewcodesit/skills`) that distributes AI agent skills to local agent directories on install.
+This is a skills content library. Skills are installed by users via the Vercel skills CLI:
 
-**Core flow:**
-1. `npm install -g` triggers `postinstall` → `scripts/install.js`
-2. Install script detects which agent dirs exist (`~/.claude/skills/`, `~/.agents/skills/`, `~/.gemini/skills/`) and copies each skill folder into them
-3. `bin/skills.js` exposes the `skills update` CLI command, which checks the npm registry and re-installs if a newer version exists
+```bash
+npx skills@latest add andrewcodesit/skills
+```
 
-**Skill format:** Each skill lives at `skills/<skill-name>/SKILL.md`. The file must contain YAML frontmatter with a non-empty `name` and `description` field — validated by `scripts/validate-skills.js`.
+There is no CLI, no postinstall script, and no npm publish workflow. The only code in this repo is `scripts/validate-skills.js` and its test — both exist to catch malformed skill frontmatter before it reaches users.
 
-**Release process:** Bump `version` in `package.json`, push a `v*` tag. GitHub Actions (`.github/workflows/publish.yml`) runs validation, tests, then publishes to npm automatically — no manual `npm publish`.
+**Skill format:** Each skill lives at `skills/<category>/<skill-name>/SKILL.md`. The file must contain YAML frontmatter with a non-empty `name` and `description` field — validated by `scripts/validate-skills.js`.
+
+**CI:** GitHub Actions runs `validate-skills.js` and `npm test` on every push and pull request to `master`.
 
 ## Adding a Skill
 
-Create `skills/<slug>/SKILL.md` with valid frontmatter:
+Create `skills/<category>/<slug>/SKILL.md` with valid frontmatter:
 
 ```markdown
 ---
@@ -43,4 +41,4 @@ description: Use when ...
 # Skill content here
 ```
 
-The validator (`scripts/validate-skills.js`) enforces that both `name` and `description` are present and non-empty. CI will reject the publish if validation fails.
+The validator enforces that both `name` and `description` are present and non-empty. CI will fail the PR if validation fails.
