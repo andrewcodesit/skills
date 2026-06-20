@@ -38,6 +38,8 @@ Check findings in this order:
 6. Missing validation at the real boundary
 7. Lower-value maintainability issues
 
+When judging simplicity, apply the Four Rules of Simple Design in priority order: passes tests → reveals intention → no duplication → fewest elements. A change that shrinks the code but obscures what it does fails rule #2 before it satisfies rule #4. Know which failure you're looking at.
+
 ## Workflow
 
 ### 1. Get the diff
@@ -90,6 +92,8 @@ If the diff touches a boundary, inspect both sides:
 - auth/access control
 - ordering/stateful behavior such as pagination, deduplication, retries, ranking, cache invalidation
 
+Apply Design by Contract at every boundary: name the preconditions (what the caller must guarantee), postconditions (what the callee guarantees on return), and invariants (what must stay true throughout). If the change doesn't address all three, the boundary is not a real contract.
+
 Do not review only the local file when the risk lives across layers.
 
 ## What To Flag Aggressively
@@ -105,6 +109,9 @@ Raise findings when you see:
 - runtime validation weaker than the types suggest
 - stale generated artifacts, fixtures, or clients
 - tests that only cover helpers while the real boundary behavior remains unverified
+- CQS violations: functions that return a value AND mutate state — they make behavior unpredictable and are hard to test in isolation
+- Rule of Three violations: new abstractions that generalize fewer than 3 existing cases without a concrete reason
+- Functional core / imperative shell violations: pure business logic mixed with I/O, orchestration embedded in domain helpers, or database queries in the presentation layer
 
 ## File Size Rule
 
@@ -162,7 +169,7 @@ Include frontmatter:
 - `date`
 - `repo`
 - `pr`
-- `jira` when detectable
+- `issue` when detectable
 
 After saving, print only:
 
