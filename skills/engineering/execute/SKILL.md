@@ -17,13 +17,15 @@ Execution quality is not "the code compiles and tests pass." This skill must ver
 
 ## Step 1: Load the Plan
 
-Find the most recent plan for this repo:
+Find the most recent unexecuted plan for this repo:
 
 ```bash
-ls ~/.agents/docs/projects/<repo-name>/plans/ | sort | tail -5
+ls ~/.agents/docs/projects/<repo-name>/plans/ | grep -v '^EXECUTED-' | sort | tail -5
 ```
 
 If multiple plans exist, show the list and ask which one to execute. If only one exists, proceed with it.
+
+Store the exact plan file path you loaded in a variable for later. You will need that same path in Step 5 when marking the plan as executed.
 
 Read the full plan. Extract:
 - All tasks (with their steps, file paths, and dependencies)
@@ -146,6 +148,23 @@ Then say:
 
 Say: "Implementation complete, review passed."
 
+**Mark plan as executed (always do this before offering next steps):**
+
+Rename the plan file to prepend `EXECUTED-` so later agents do not re-execute it or mistake it for pending work:
+
+```bash
+PLAN_FILE=~/.agents/docs/projects/<repo-name>/plans/<plan-file>.md
+PLAN_DIR=$(dirname "$PLAN_FILE")
+PLAN_BASE=$(basename "$PLAN_FILE")
+
+case "$PLAN_BASE" in
+  EXECUTED-*) ;;
+  *) mv "$PLAN_FILE" "$PLAN_DIR/EXECUTED-$PLAN_BASE" ;;
+esac
+```
+
+If the rename fails because the plan came from a non-standard location or no longer exists, skip silently. Do not block completion on bookkeeping. The goal is simply to leave a visible marker for the next agent whenever possible.
+
 **Context file check (always run this before offering next steps):**
 
 Ask yourself: did this implementation introduce anything that isn't already captured in `context/`? Specifically:
@@ -214,6 +233,7 @@ Never auto-commit or auto-push. Always wait for the user to choose.
 - **Never** skip the review step even if the implementation looks obviously correct
 - **Never** commit or push without explicit user choice in Step 5
 - **Never** implement out-of-scope items "while you're at it"
+- **Never** leave a successfully implemented plan looking unexecuted when the plan file is writable
 - **Never** present fix plans as already done - offer first, implement after approval
 - **Never** let a subagent read the plan file - paste the full task text into their prompt
 - If a subagent returns BLOCKED and you can't resolve it, surface it to the user before continuing other tasks
