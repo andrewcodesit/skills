@@ -10,6 +10,8 @@ description: >
 
 # Verify UI
 
+**Announce at start:** `Running UI verification...`
+
 Use this skill to validate a UI implementation in the browser and return a solid findings report.
 Do not stop at "it renders" or "no obvious issues." Verify the actual user flow and inspect the
 browser signals that reveal broken implementations.
@@ -30,10 +32,11 @@ The job is to:
 
 Use the best available browser control surface for local verification.
 
-If the in-app Browser plugin and its browser-control skill are available, use them first for local
-UI verification. If they are not available, use another browser automation surface that can open
-the local app, exercise the flow, and inspect visible state. If no browser surface is available,
-report that verification is blocked instead of pretending the UI was checked.
+Prefer `chrome-devtools-mcp:chrome-devtools` — invoke it via the Skill tool. It provides
+navigation, interaction, screenshot, console, and network inspection in one surface. If that skill
+is not available, use any other browser automation surface that can open the local app, exercise
+the flow, and inspect visible state. If no browser surface is available, report that verification
+is blocked instead of pretending the UI was checked.
 
 ## Workflow
 
@@ -56,8 +59,15 @@ Prefer:
 - `package.json` scripts
 - app-specific README or context docs
 
-Before starting a new server, check whether the relevant app is already running. Reuse an existing
-healthy server instead of spawning duplicates.
+Before starting a new server, check whether the relevant app is already running:
+
+```bash
+lsof -i :<port> | grep LISTEN
+# or
+curl -s -o /dev/null -w "%{http_code}" http://localhost:<port>
+```
+
+Reuse an existing healthy server instead of spawning duplicates.
 
 When you start a server:
 - launch it in the background
@@ -100,10 +110,14 @@ During and after the flow, inspect:
 
 Treat console or network issues as real findings unless they are clearly unrelated noise.
 
-### 6. Re-verify after code changes
+### 6. Capture a screenshot
 
-If code changed during the task, reload the app and verify the affected flow again. Do not assume
-hot reload produced the final state correctly.
+Before writing the report, take a screenshot of the final app state using the browser tool's
+screenshot capability. Attach it to the Evidence section. This is the primary artifact that proves
+verification actually happened — always capture it.
+
+If you had to restart the server at any point during the session, reload the page and re-exercise
+the flow before capturing the screenshot.
 
 ## What Good Verification Looks Like
 
@@ -160,9 +174,9 @@ Use this structure:
 - any flows, viewports, states, or dependencies that were not verified
 
 ### Evidence
+- screenshot of the final app state (always include)
 - relevant console errors
 - failed requests
-- screenshots only when useful
 
 Prefer a few high-signal findings over a noisy diary of every click.
 
