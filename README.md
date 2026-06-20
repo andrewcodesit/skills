@@ -2,9 +2,9 @@
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-My agent skills for getting real engineering work done with Claude Code, Codex, and Gemini CLI - not demos.
+Practical agent skills for real engineering work with Claude Code, Codex, Gemini CLI, and other tools that support the Agent Skills format.
 
-Most skill collections are one-offs, built for a single project and abandoned. These are different: every skill here is something I reach for on every repo, every week, because it fixes a specific failure mode I kept hitting with agents.
+These are the skills I keep reusing across repos because they solve recurring failure modes: weak plans, lost context, shallow reviews, and gradual repo drift.
 
 ## Install
 
@@ -12,15 +12,13 @@ Most skill collections are one-offs, built for a single project and abandoned. T
 npx skills@latest add andrewcodesit/skills
 ```
 
-Pick the skills you want from the interactive prompt. Works with Claude Code, Codex, Cursor, Windsurf, and [70+ other agents](https://github.com/vercel-labs/skills#supported-agents) automatically.
+Pick the skills you want from the interactive prompt. Works with Claude Code, Codex, Cursor, Windsurf, and [other agents that support the format](https://github.com/vercel-labs/skills#supported-agents).
 
 Install a specific skill without the picker:
 
 ```bash
 npx skills@latest add andrewcodesit/skills --skill code-review
 ```
-
-> Previously used `npm install -g @andrewcodesit/skills`? That still works but is no longer the recommended path. Switch to the command above.
 
 ## Why These Skills Exist
 
@@ -34,7 +32,7 @@ Every new session starts from zero unless you've documented the repo for the age
 
 ### #3: Reviews are either rubber-stamps or noise
 
-Agents reviewing agent-written code tend to either approve everything or flood you with nitpicks. **[`code-review`](./skills/engineering/code-review/SKILL.md)** reviews like a blunt senior engineer would: real bugs and real risks, not style nitpicks.
+Agents reviewing agent-written code tend to either approve everything or flood you with nitpicks. **[`code-review`](./skills/engineering/code-review/SKILL.md)** is tuned to focus on real bugs and real risks, not style noise.
 
 ### #4: Cruft accumulates and nobody notices
 
@@ -49,8 +47,9 @@ Dead code, leftover debug logs, and unused imports pile up quietly across sessio
 ### Engineering
 
 - **[cleanup](./skills/engineering/cleanup/SKILL.md)** - Scans the repo for dead code, debug artifacts, and other cruft, then fixes it category by category with confirmation.
-- **[code-review](./skills/engineering/code-review/SKILL.md)** - Deep code review that acts like a blunt senior engineer.
+- **[code-review](./skills/engineering/code-review/SKILL.md)** - Deep code review focused on structural issues, behavioral risks, and missing coverage.
 - **[execute](./skills/engineering/execute/SKILL.md)** - Runs an approved plan, then reviews the implementation against spec and repo standards.
+- **[verify-ui](./skills/engineering/verify-ui/SKILL.md)** - Verifies local UI changes in a running app, including the browser flow, layout, and visible regressions.
 
 ### Project Management
 
@@ -63,6 +62,16 @@ Dead code, leftover debug logs, and unused imports pile up quietly across sessio
 Each skill is a `SKILL.md` file with YAML frontmatter (`name`, `description`) plus instructions the agent follows when it matches your request, grouped under `skills/<category>/<skill-name>/SKILL.md`.
 
 Skills follow the [Agent Skills specification](https://agentskills.io) and are compatible with any agent that supports it.
+
+## For contributors
+
+This repo is intentionally simple:
+
+- Skills live at `skills/<category>/<skill-name>/SKILL.md`.
+- Every skill must include YAML frontmatter with a non-empty `name` and `description`.
+- Validation is handled by `scripts/validate-skills.js`.
+- Test the repo with `npm test`.
+- There is no build step, transpilation, or bundler.
 
 ## License
 
