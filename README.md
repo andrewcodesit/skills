@@ -50,6 +50,7 @@ Dead code, leftover debug logs, and unused imports pile up quietly across sessio
 - **[code-review](./skills/engineering/code-review/SKILL.md)** - Deep code review focused on structural issues, behavioral risks, and missing coverage.
 - **[execute](./skills/engineering/execute/SKILL.md)** - Runs an approved plan, then reviews the implementation against spec and repo standards.
 - **[verify-ui](./skills/engineering/verify-ui/SKILL.md)** - Verifies local UI changes in a running app, including the browser flow, layout, and visible regressions.
+- **[verity-ts](./skills/engineering/verity-ts/SKILL.md)** - TypeScript strictness audit enforcing no-any, unknown at boundaries, discriminated unions, branded types, exhaustiveness checks, and runtime validation.
 
 ### Project Management
 

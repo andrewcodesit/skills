@@ -57,3 +57,5 @@ description: Use when ...
 ```
 
 CI will fail the PR if validation fails.
+
+When adding, removing, or renaming a skill, always update the Reference section of `README.md` to reflect the change.
