@@ -1,13 +1,13 @@
 ---
-name: verity-ts
+name: verify-ts
 description: >
   Audit TypeScript code for type-safety, strictness, and idiomatic TS patterns. Enforce no-any policy,
   proper narrowing, discriminated unions, branded types, and exhaustiveness checks. Use when the user
-  says "verity-ts", "ts review", "check types", "type audit", "typescript review", or asks to enforce
+  says "verify-ts", "ts review", "check types", "type audit", "typescript review", or asks to enforce
   TS best practices across files or a diff.
 ---
 
-# Verity-TS — TypeScript Strictness Audit
+# Verify-TS — TypeScript Strictness Audit
 
 Announce at start: `Running TypeScript audit...`
 
