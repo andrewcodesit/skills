@@ -38,6 +38,10 @@ Agents reviewing agent-written code tend to either approve everything or flood y
 
 Dead code, leftover debug logs, and unused imports pile up quietly across sessions. **[`cleanup`](./skills/engineering/cleanup/SKILL.md)** scans for it, cites `file:line`, and fixes it category by category with your confirmation - not a silent mass rewrite.
 
+### #5: Project work needs a trackable path
+
+Starting from a vague idea is where agents lose the thread fastest. **[`define-spec`](./skills/project-management/define-spec/SKILL.md)** turns the idea into a concise spec, **[`breakdown-tasks`](./skills/project-management/breakdown-tasks/SKILL.md)** turns that spec into local or external tasks with epics when the work is large, and **[`close-task`](./skills/project-management/close-task/SKILL.md)** handles the finish line: review status, validation, optional git actions after approval, and task completion.
+
 ## Reference
 
 ### Context
@@ -54,6 +58,9 @@ Dead code, leftover debug logs, and unused imports pile up quietly across sessio
 
 ### Project Management
 
+- **[breakdown-tasks](./skills/project-management/breakdown-tasks/SKILL.md)** - Breaks specs or project goals into local or external tasks, with epics for larger work.
+- **[close-task](./skills/project-management/close-task/SKILL.md)** - Finishes a task by checking review/validation status, optionally handling git actions after approval, and marking the task done.
+- **[define-spec](./skills/project-management/define-spec/SKILL.md)** - Turns a project idea, feature request, bug, or vague goal into a concise implementation-ready spec.
 - **[plan](./skills/project-management/plan/SKILL.md)** - Writes an implementation plan for a feature, task, or spec.
 - **[plan-review](./skills/project-management/plan-review/SKILL.md)** - Reviews an implementation plan and critiques it before execution.
 - **[handoff](./skills/project-management/handoff/SKILL.md)** - Generates a comprehensive handoff spec so another agent can pick up the session.

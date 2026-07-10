@@ -177,53 +177,7 @@ Ask yourself: did this implementation introduce anything that isn't already capt
 
 If yes to any of these, run `/update-context-files` inline now — do not ask the user first, just do it and include what you updated in the report. If context files don't exist for this repo yet, skip silently (don't prompt to create them mid-execution).
 
-Then ask what to do next. Base the options on the repo's git rules:
-
-**If AGENTS.md permits git actions for this repo:**
-
-First, check whether an MR/PR already exists for the current branch:
-
-```bash
-# GitLab
-BRANCH=$(git rev-parse --abbrev-ref HEAD)
-glab mr list --source-branch "$BRANCH" 2>/dev/null | head -5
-
-# GitHub (if glab not available)
-gh pr list --head "$BRANCH" 2>/dev/null | head -5
-```
-
-**If an open MR/PR exists:**
-
-```
-What's next?
-
-1. Commit and push (updates the existing MR)
-2. Leave it for me to handle
-```
-
-**If no open MR/PR exists:**
-
-```
-What's next?
-
-1. Commit and push the branch
-2. Commit, push, and open an MR
-3. Leave it for me to handle
-```
-
-For commits, use the commit format from AGENTS.md exactly.
-For MR creation: follow AGENTS.md instructions (e.g., empty description if specified).
-
-**If no repo override (global rules apply - no git actions):**
-
-```
-What's next?
-
-1. Nothing - I'll handle git myself
-2. Something else
-```
-
-Never auto-commit or auto-push. Always wait for the user to choose.
+Then offer `close-task` for task status, final validation, and any explicit git/PR workflow. Do not commit, push, or mark external work done from `execute` unless the user explicitly asks in the current turn.
 
 ---
 
@@ -231,7 +185,6 @@ Never auto-commit or auto-push. Always wait for the user to choose.
 
 - **Never** start implementing before loading and reading the full plan
 - **Never** skip the review step even if the implementation looks obviously correct
-- **Never** commit or push without explicit user choice in Step 5
 - **Never** implement out-of-scope items "while you're at it"
 - **Never** leave a successfully implemented plan looking unexecuted when the plan file is writable
 - **Never** present fix plans as already done - offer first, implement after approval
