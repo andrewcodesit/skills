@@ -27,7 +27,7 @@ Args: `[--branch | --full]`
 
 Artifact location:
 - `~/.agents/cleanup-plans/<repo>/<slug>-cleanup-plan.md`
-- `slug` should prefer: Jira key if present → current branch name → repo name, kebab-cased
+- `slug` should prefer: issue/ticket key if present → current branch name → repo name, kebab-cased
 - include frontmatter: `date`, `repo`, `branch`, `mode`
 
 Terminal behavior:

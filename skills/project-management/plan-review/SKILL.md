@@ -31,7 +31,7 @@ Work through these in order.
 
 ### 0. Source Spec Alignment
 
-If the plan references an upstream issue, ticket, or spec page, fetch and read it first. Never judge the plan against your interpretation of the task — judge it against the actual spec.
+If the plan references an upstream issue, ticket, or spec page, fetch and read it first. To resolve which tracker to fetch from, check the repo's `AGENTS.md`/`CLAUDE.md` for a configured project-management system (Jira, Linear, GitHub Issues, etc.) and use it; if none is configured, ask the user or work from the local reference the plan already cites. Never judge the plan against your interpretation of the task — judge it against the actual spec.
 
 Flag when the plan:
 - Misses acceptance criteria

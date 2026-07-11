@@ -104,6 +104,7 @@ Raise findings when you see:
 - feature logic leaking into shared or general-purpose paths
 - wrappers, pass-through helpers, or abstractions that add indirection without clarity
 - types, casts, optionality, or ad-hoc object shapes obscuring the real invariant
+- crowded component scripts that keep piling refs, computeds, watchers, constants, and handlers inline when adjacent helpers or scoped composables would make the component easier to scan
 - duplicated logic where the codebase already has a canonical helper
 - a contract changed on one side but not the other
 - runtime validation weaker than the types suggest
@@ -127,7 +128,7 @@ Apply stack-specific scrutiny only when it materially affects maintainability or
 
 Examples:
 - TypeScript: unjustified `any`, unsafe casts, vague object shapes, fake optionality
-- React/Nuxt/Next: branching-heavy components, state/orchestration/rendering all jammed together, avoidable client/server boundary confusion
+- React/Nuxt/Next: branching-heavy components, state/orchestration/rendering all jammed together, avoidable client/server boundary confusion, long `<script setup>` or component bodies that should be decomposed into adjacent helper files, constants, or scoped composables
 - Backend/service code: orchestration mixed with core business logic, duplicated query patterns, partial updates that should be more atomic
 
 Do not cargo-cult framework advice. Flag it only when it improves the design.

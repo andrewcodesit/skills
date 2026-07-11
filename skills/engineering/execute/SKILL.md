@@ -117,6 +117,11 @@ At minimum, review these categories when relevant:
 
 Do not treat passing lint/build/tests as sufficient if the implementation changed ordered behavior, schema contracts, or multi-layer integration points.
 
+### Post-review offers
+
+- If the work removed, renamed, or moved behavior, offer to run `cleanup` to catch dead imports, stale harnesses, or orphaned UI affordances left behind by the refactor.
+- If UI behavior changed, offer `verify-ui` — but only run browser-based, visual, or interactive verification with explicit user approval in the current turn. Never launch it on your own.
+
 ---
 
 ## Step 5: Report Results

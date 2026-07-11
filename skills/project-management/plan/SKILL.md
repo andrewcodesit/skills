@@ -27,7 +27,14 @@ Determine the repo name from the working directory or git remote. Check:
 ls ~/.agents/docs/projects/<repo-name>/plans/ 2>/dev/null | grep -i "<task-slug>"
 ```
 
-If found: show the path, ask "Use it or write a new one?" If use existing: stop and send the link only. If new: continue.
+If one or more candidate plans are found, do a quick relevance assessment before asking the user anything:
+
+- Read the title, Goal, and Approach sections of each candidate.
+- Compare them against the current user request, not just the filename or slug match.
+- Treat a plan as relevant only if its user outcome and implementation surface materially overlap with the current task.
+- If none are actually relevant, say so briefly and continue with a new plan without asking whether to reuse them.
+
+If a candidate is genuinely relevant: show the path and one-sentence reason it matches, then ask "Use it or write a new one?" If the user chooses to use existing: stop and send the link only. If the user chooses new: continue.
 
 ### 2. Gather Context
 
