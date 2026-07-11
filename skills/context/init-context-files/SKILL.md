@@ -293,6 +293,6 @@ A good context file:
 
 A bad context file:
 - Repeats what's obvious from the directory structure
-- Contains things better kept in CLAUDE.md
+- Contains things better kept in the agent instructions file (`AGENTS.md`/`CLAUDE.md`)
 - Has stale commands or outdated tech stack info
 - Mixes concerns (design details in code-standards)
