@@ -17,6 +17,8 @@ Before writing a single step, verify what exists, what is already installed, and
 
 Optimize for correctness at the seams. When work crosses boundaries — client/server, app/DB, generated/manual, config/runtime — the plan must name the contract at that boundary and how the implementation will prove it holds.
 
+For larger work, make the plan a controlled sequence, not one long unchecked run. Keep all work in one markdown plan, split it into ordered phases, and split each phase into small, concrete tasks. A phase must be a coherent, independently verifiable slice of the outcome; do not begin the next phase until the current phase's verification gate passes.
+
 ## Steps
 
 ### 1. Check for Existing Plan
@@ -26,6 +28,10 @@ Determine the repo name from the working directory or git remote. Check:
 ```bash
 ls ~/.agents/docs/projects/<repo-name>/plans/ 2>/dev/null | grep -i "<task-slug>"
 ```
+
+Ignore any candidate whose filename starts with `EXECUTED-`. It is a historical record of
+completed work, never a reusable plan, and must not be shown to the user or used to block
+writing a new plan.
 
 If one or more candidate plans are found, do a quick relevance assessment before asking the user anything:
 
@@ -153,13 +159,45 @@ Only the contracts that matter for this task. For each:
 | `path/to/file.ts` | Create | ... |
 | `path/to/existing.ts` | Modify | ... |
 
-## Tasks
+For small, self-contained work, use one phase. For larger work, split the plan into ordered phases. Do not create separate plan files per phase.
 
-### Task 1: [Name]
+## Phases
+
+### Phase 1: [Outcome-sized name]
+**Goal:** the independently useful or verifiable result this phase delivers.
 **Files:** exact files touched
+**Depends on:** none, or earlier phase(s)
 
-- [ ] Concrete, actionable step
+#### Tasks
+
+- [ ] Concrete, actionable task
 - [ ] ...
+
+#### Phase Verification Gate
+
+- [ ] Exact command, test, inspection, or behavior check proving this phase is complete
+- [ ] Confirm the phase's contracts and negative paths still hold
+
+**Proceed only when:** every task and verification check above passes. If a check fails, fix or re-plan this phase before starting Phase 2.
+
+### Phase 2: [Outcome-sized name]
+**Goal:** ...
+**Files:** exact files touched
+**Depends on:** Phase 1
+
+#### Tasks
+
+- [ ] Concrete, actionable task
+
+#### Phase Verification Gate
+
+- [ ] Exact proof that this phase is complete
+
+**Proceed only when:** every task and verification check above passes.
+
+Use as many phases as the task needs. Keep phases sequential unless their file ownership and contracts are genuinely independent. When phases can safely run in parallel, state which ones may be delegated to subagents, their exact scope, and the integration/verification task that reunites their work. Never parallelize work that edits the same files, depends on unverified contracts, or makes integration ownership unclear.
+
+**Execution protocol:** after approval, execute the plan one phase at a time in this same file. Complete and mark the phase's tasks, run and record its verification gate, then begin the next phase only after the gate passes. If a gate fails, keep work within that phase until it is fixed or the plan is explicitly revised. A final Validation section validates the whole feature; it never replaces a phase verification gate.
 
 ## Validation
 - [ ] `pnpm lint`
@@ -189,6 +227,9 @@ Remaining unknowns that don't block the plan but should be tracked.
 - Distinguish "build passes" from "behavior is correct" — lint/tests alone are not sufficient proof for stateful or cross-layer work
 - When sibling implementations share a pattern, name the reference and require the others to match its guards and failure handling
 - Every new endpoint, job, or write path gets at least one negative-path validation step
+- Each phase has a concrete verification gate that proves its stated outcome before the next phase begins
+- Each task belongs to exactly one phase; do not use a single unbounded task list for large work
+- Only delegate phase work to subagents when its inputs, file ownership, and completion criteria are explicit and independent; retain one integration owner and verification gate
 - Do NOT include commit steps
 
 ### 4.5 Self-Review Before Saving
@@ -202,6 +243,8 @@ Before saving, check:
 5. Does the Pre-mortem name specific failure scenarios — not just "add error handling"?
 6. Is the Validation section specific enough to prove the feature works?
 7. Did the plan introduce contradictory statements between Tasks and Out of Scope?
+8. For a large task, are phases ordered by dependency, with a concrete verification gate before each later phase?
+9. If parallel delegation is proposed, are the subagent scopes independent and is the integration verification explicit?
 
 If any answer is "no" or "not sure," fix the plan first.
 
@@ -227,3 +270,6 @@ Include a short 1–3 sentence summary of the main decisions. Do not dump the fu
 - Never add a new dependency without checking if the stack already solves the problem
 - Never treat a plan as done if the File Map contains paths you have not verified
 - Never plan for future requirements that were not asked for
+- Never start a later phase before recording how the preceding phase will be verified
+- Never start a later phase before its preceding verification gate has passed
+- Never split a plan into separate phase files; preserve one source of truth for the whole task
