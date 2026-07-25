@@ -39,6 +39,19 @@ There is no CLI, no postinstall script, and no npm publish workflow. The only co
 - Prefer generic terms such as `ticket`, `issue`, `task`, `spec`, `wiki`, or `project management system` over vendor names.
 - If a workflow can consume upstream work items, phrase it so the agent adapts to the system available in the user environment instead of assuming one.
 
+## Shared References
+
+Some skills carry an identical file under `references/`, so each skill stays self-contained and works
+when installed on its own. `references/question-format.md` is one of these — it defines the format
+every skill uses to ask the user a question, and it currently lives in `plan`, `plan-review`,
+`breakdown-tasks`, `code-review`, and `execute`.
+
+- Editing one copy means editing **every** copy. `validateSharedReferences` in
+  `scripts/validate-skills.js` fails CI when copies drift.
+- To add a new shared reference, add its filename to `SHARED_REFERENCES` in that script.
+- Do not replace these copies with a single file that skills read by absolute path. Users install
+  skills individually, so a cross-skill path breaks for anyone who did not install every skill.
+
 ## CI
 
 GitHub Actions runs `validate-skills.js` and `npm test` on every push and pull request to `master`.

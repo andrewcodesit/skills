@@ -42,6 +42,8 @@ If one or more candidate plans are found, do a quick relevance assessment before
 
 If a candidate is genuinely relevant: show the path and one-sentence reason it matches, then ask "Use it or write a new one?" If the user chooses to use existing: stop and send the link only. If the user chooses new: continue.
 
+If another skill invoked this one with an explicit spec source — a findings file, a review file, a spec path — read that file first and judge relevance against it. Never let a slug match against an old plan discard the spec you were handed; record the path in the plan's `**Source:**` field.
+
 ### 2. Gather Context
 
 Read the relevant codebase before forming any opinion about the task:
@@ -101,29 +103,23 @@ If a category applies, the plan must include a concrete implementation step for 
 
 ### 3. Grill the User
 
-Non-negotiable. Ask every question needed before writing anything. Ask one at a time. After each answer, reassess what remains unknown. Stop when remaining ambiguity is non-blocking.
+Non-negotiable. Ask every question needed before writing anything.
+
+Read `references/question-format.md` and follow it exactly for every question. Do not improvise a
+format and do not rely on memory of what the format is.
+
+If that file cannot be read, stop and tell the user:
+
+> Question-format reference not found at `references/question-format.md`.
+> I can't ask questions in the standardized format without it.
+>
+> Continue anyway with an improvised format, or stop so you can fix the file?
+
+Then wait. Never improvise silently and never continue as if the format were loaded.
 
 When the task has no real unknowns after codebase inspection, say so and skip this step. The goal is to remove ambiguity, not perform thoroughness.
 
-**Every question must follow this format exactly:**
-
-1. One sentence framing what is unknown and why it matters.
-2. 2–4 lettered options: `A.`, `B.`, `C.`, `D.`
-3. The best option comes first, labeled `(Recommended)`.
-4. Each option includes a short reason.
-5. End with: "Reply with the letter."
-
-Example:
-
-> **Q: How should attribute schemas be stored?**
->
-> A. **(Recommended) DB table per category** — future-proof: admin can manage schemas without redeploys; enables faceted filtering later.
-> B. **Hardcoded map in API** — simpler now, but requires a redeploy for every schema change.
-> C. **JSON blob on the category row** — avoids a new table, but makes querying individual attributes much harder.
->
-> Reply with the letter.
-
-Wait for user answers before proceeding.
+Wait for user answers before proceeding. Record every answer in the plan's `## Decisions` section as described in the format reference.
 
 ### 4. Write the Plan
 
@@ -139,6 +135,7 @@ Save to:
 # [Feature Name] — Implementation Plan
 
 **Task:** [ticket link, issue URL, or task reference]
+**Source:** [path to the spec, findings, or review file this plan was built from — omit if none]
 **Date:** YYYY-MM-DD
 
 ## Goal
@@ -210,6 +207,10 @@ The top ways this could silently fail even if all checks pass.
 - **Scenario:** what breaks
   **Prevention:** what the plan does about it
   **Verification:** how to confirm it held
+
+## Decisions
+Every question answered while writing this plan. One line each: the question, the option chosen, and the user's own reason if they gave one.
+- **[question]** → [chosen option]. [User's reason, if given.]
 
 ## Out of Scope
 Anything explicitly excluded.

@@ -172,11 +172,35 @@ Include frontmatter:
 - `pr`
 - `issue` when detectable
 
-After saving, print only:
+After saving, print only the path and a finding-count breakdown:
 
-`Code review saved → ~/.agents/code-reviews/<repo>/<slug>-code-review.md`
+```
+Code review saved → ~/.agents/code-reviews/<repo>/<slug>-code-review.md
+7 findings: 2 🔴, 1 📏, 3 🟡, 1 🟢
+```
 
 Do not print the full report body to the terminal.
+
+## Offer Resolution
+
+If the review has any findings, offer a resolution gate.
+
+Read `references/question-format.md` first and follow its Resolution Gates section exactly — the standard dispositions, the computed recommendation, and the format of the gate itself.
+
+If that file cannot be read, stop and tell the user:
+
+> Question-format reference not found at `references/question-format.md`.
+> I can't ask questions in the standardized format without it.
+>
+> Continue anyway with an improvised format, or stop so you can fix the file?
+
+Then wait. Never improvise silently and never continue as if the format were loaded.
+
+Offer only the dispositions that apply to this review, and compute the recommendation from the findings — architecture-level findings, findings crossing 3+ files, and decompositions route to the planning skill; everything else defaults to grilling on the ambiguous findings only.
+
+Record the gate answer and every per-finding decision in a `## Decisions` section appended to the saved review file.
+
+If there are no findings, skip this step entirely.
 
 ## Approval Bar
 

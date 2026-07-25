@@ -5,6 +5,10 @@ description: Use when the user approves a plan and says "go", "go for it", "exec
 
 # Execute Plan
 
+## Mandatory approval gate
+
+Only run this skill after the user has seen the plan and explicitly approved it in a later turn, or has invoked `/execute` in a later turn. **Never infer approval from the existence of a plan file, from the user's initial request to start work, or from same-turn wording such as “go,” “let’s do it,” or “implement it” before the plan was presented.** If the plan has not been presented and separately approved, stop and present the plan instead of changing files.
+
 ## Overview
 
 Take an approved plan and implement it - dispatching parallel subagents for independent tasks, or executing inline for sequential ones. Review the result before offering next steps.
@@ -23,7 +27,7 @@ Find the most recent unexecuted plan for this repo:
 ls ~/.agents/docs/projects/<repo-name>/plans/ | grep -v '^EXECUTED-' | sort | tail -5
 ```
 
-If multiple plans exist, show the list and ask which one to execute. If only one exists, proceed with it.
+If multiple plans exist, show the list and ask which one to execute. If only one exists, load it, but do not proceed until the approval gate above is satisfied. A plan file alone is never authorization to implement.
 
 Store the exact plan file path you loaded in a variable for later. You will need that same path in Step 5 when marking the plan as executed.
 
@@ -143,11 +147,22 @@ Present a clean summary:
 - [ ] <silent bug, cross-layer drift, or boundary issue and where>
 ```
 
-Then say:
+Then offer a resolution gate.
 
-> Found N issues. Want me to plan out the fixes? I'll show you the fix plan before touching anything.
+Read `references/question-format.md` and follow its Resolution Gates section exactly — the standard dispositions, the computed recommendation, and the format of the gate itself.
 
-**Wait for user approval before proceeding.**
+If that file cannot be read, stop and tell the user:
+
+> Question-format reference not found at `references/question-format.md`.
+> I can't ask questions in the standardized format without it.
+>
+> Continue anyway with an improvised format, or stop so you can fix the file?
+
+Then wait. Never improvise silently and never continue as if the format were loaded.
+
+Offer only the dispositions that apply. These findings come from adversarial review of just-written code, so they are more likely than usual to be structural — when a finding is architecture-level, crosses 3+ files, or is a decomposition, recommend routing it back through the planning skill rather than patching inline.
+
+**Wait for user approval before proceeding.** Never present fix work as already done.
 
 ### If no issues were found:
 
@@ -180,7 +195,7 @@ Ask yourself: did this implementation introduce anything that isn't already capt
 - A new component, service, or external dependency
 - A business rule that became concrete during coding
 
-If yes to any of these, run `/update-context-files` inline now — do not ask the user first, just do it and include what you updated in the report. If context files don't exist for this repo yet, skip silently (don't prompt to create them mid-execution).
+If yes to any of these, draft the proposed edits (which file, what's being added/changed, and why) and show them to the user. Wait for explicit approval before running `/update-context-files` to apply them. Include what was updated in the report once applied. If context files don't exist for this repo yet, skip silently (don't prompt to create them mid-execution).
 
 Then offer `close-task` for task status, final validation, and any explicit git/PR workflow. Do not commit, push, or mark external work done from `execute` unless the user explicitly asks in the current turn.
 

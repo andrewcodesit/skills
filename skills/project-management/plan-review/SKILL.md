@@ -190,28 +190,31 @@ Write the full review to:
 
 Slug priority: issue key or task id → plan filename → current branch name. Append `-plan-review`.
 
-Print only:
+Print only the saved path and a finding-count breakdown:
 
 ```
 Plan review saved → ~/.agents/plan-reviews/<repo>/<slug>-plan-review.md
+7 findings: 2 🔴, 1 📏, 3 🟡, 1 🟢
 ```
 
 ## Offer Resolution
 
-If the review contains any Blocking Findings, Non-Blocking Risks, Missing Steps, or Open Questions:
+If the review contains any Blocking Findings, Non-Blocking Risks, Missing Steps, or Open Questions, offer a resolution gate.
 
-```
-Found [N] issues. How do you want to handle them?
+Read `references/question-format.md` first and follow its Resolution Gates section exactly — the standard dispositions, the computed recommendation, and the format of the gate itself.
 
-1. Ask me questions one-by-one (I'll fill in the gaps and decide on approaches)
-2. Let you decide (I'll apply best judgment and summarize)
-```
+If that file cannot be read, stop and tell the user:
 
-Wait for the user's answer before proceeding.
+> Question-format reference not found at `references/question-format.md`.
+> I can't ask questions in the standardized format without it.
+>
+> Continue anyway with an improvised format, or stop so you can fix the file?
 
-If option **1**: work through each issue one at a time using the same lettered-option format as `/plan` — options A/B/C, recommended first, one question per message.
+Then wait. Never improvise silently and never continue as if the format were loaded.
 
-If option **2**: state which option you'd choose for each ambiguous finding and why (one sentence each), then ask if the user wants to proceed.
+Print the saved path and a finding-count breakdown before the gate, then offer only the dispositions that apply to this review. Wait for the user's answer before proceeding.
+
+Record the gate answer and every per-finding decision in a `## Decisions` section appended to the saved review file.
 
 If verdict is `ready` with no open questions, skip this step entirely.
 
