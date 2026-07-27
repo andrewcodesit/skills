@@ -20,7 +20,7 @@ Create a short, decision-oriented spec that can be broken into tasks.
 3. Save the spec to:
 
 ```text
-~/.agents/docs/projects/<repo>/specs/YYYY-MM-DD-<slug>.md
+~/.agents/specs/<repo>/YYYY-MM-DD-<slug>.md
 ```
 
 4. If the user explicitly asks for repo-local docs, save under the repo instead.
