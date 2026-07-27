@@ -26,7 +26,7 @@ For larger work, make the plan a controlled sequence, not one long unchecked run
 Determine the repo name from the working directory or git remote. Check:
 
 ```bash
-ls ~/.agents/docs/projects/<repo-name>/plans/ 2>/dev/null | grep -i "<task-slug>"
+ls ~/.agents/plans/<repo-name>/ 2>/dev/null | grep -i "<task-slug>"
 ```
 
 Ignore any candidate whose filename starts with `EXECUTED-`. It is a historical record of
@@ -126,7 +126,7 @@ Wait for user answers before proceeding. Record every answer in the plan's `## D
 Save to:
 
 ```
-~/.agents/docs/projects/<repo-name>/plans/YYYY-MM-DD-<task-slug>.md
+~/.agents/plans/<repo-name>/YYYY-MM-DD-<task-slug>.md
 ```
 
 **Plan structure:**
@@ -253,7 +253,7 @@ If any answer is "no" or "not sure," fix the plan first.
 
 After saving:
 
-> Plan saved → `~/.agents/docs/projects/<repo-name>/plans/<filename>.md` — reply "go" to execute, or tell me what to change.
+> Plan saved → `~/.agents/plans/<repo-name>/<filename>.md` — reply "go" to execute, or tell me what to change.
 
 Include a short 1–3 sentence summary of the main decisions. Do not dump the full plan in chat.
 

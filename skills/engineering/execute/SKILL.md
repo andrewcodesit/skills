@@ -24,7 +24,7 @@ Execution quality is not "the code compiles and tests pass." This skill must ver
 Find the most recent unexecuted plan for this repo:
 
 ```bash
-ls ~/.agents/docs/projects/<repo-name>/plans/ | grep -v '^EXECUTED-' | sort | tail -5
+ls ~/.agents/plans/<repo-name>/ | grep -v '^EXECUTED-' | sort | tail -5
 ```
 
 If multiple plans exist, show the list and ask which one to execute. If only one exists, load it, but do not proceed until the approval gate above is satisfied. A plan file alone is never authorization to implement.
@@ -173,7 +173,7 @@ Say: "Implementation complete, review passed."
 Rename the plan file to prepend `EXECUTED-` so later agents do not re-execute it or mistake it for pending work:
 
 ```bash
-PLAN_FILE=~/.agents/docs/projects/<repo-name>/plans/<plan-file>.md
+PLAN_FILE=~/.agents/plans/<repo-name>/<plan-file>.md
 PLAN_DIR=$(dirname "$PLAN_FILE")
 PLAN_BASE=$(basename "$PLAN_FILE")
 

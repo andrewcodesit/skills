@@ -12,7 +12,7 @@ Finish the current task without hiding unresolved review, validation, or status 
 ## Process
 
 1. Identify the active task from:
-   - local task files under `~/.agents/docs/projects/<repo>/tasks/`
+   - local task files under `~/.agents/tasks/<repo>/`
    - repo-local `.agents/tasks/`
    - the current branch name
    - the user-provided task, issue, ticket, or external link

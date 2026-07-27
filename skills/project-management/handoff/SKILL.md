@@ -21,7 +21,7 @@ Before writing anything, pull together all available context:
 - **Active branch** — `git branch --show-current` (if in a git repo)
 - **Uncommitted changes** — `git status --short` and `git diff --stat` (if in a git repo)
 - **Recent commits on this branch** — `git log --oneline -10` (if in a git repo)
-- **Existing plans/specs for this repo** — check `~/.agents/docs/projects/<repo-name>/` for plans, specs, notes
+- **Existing plans/specs/tasks for this repo** — check `~/.agents/plans/<repo-name>/`, `~/.agents/specs/<repo-name>/`, and `~/.agents/tasks/<repo-name>/`
 - **Session conversation** — review this conversation for: goals, decisions made, files touched, problems hit, solutions found, open questions, and what was left unfinished
 
 Do not skip this step. The quality of the handoff doc depends entirely on it.
