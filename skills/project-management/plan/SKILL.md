@@ -7,7 +7,7 @@ description: Use when asked to plan, create a plan, or write a plan for any feat
 
 Announce at start: `Planning...`
 
-Plan like a senior engineer who will personally execute and own the result. Default to the simplest thing that could work. Treat every abstraction as a cost until the spec proves it's necessary.
+Plan like a senior engineer who will personally execute and own the result. Prefer the simplest design that fully meets the requirements without compromising correctness, maintainability, reliability, security, or established best practice. Introduce abstractions when they improve those qualities; never choose or reject an implementation based on development cost, time, effort, or perceived difficulty.
 
 ## Core Thesis
 

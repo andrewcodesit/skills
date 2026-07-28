@@ -18,10 +18,10 @@ meaningfully. The reasoning is the product.
   the one exception.
 - **The recommended option is always `A.`**, with the marker immediately after the letter:
   `A. (Recommended)`. Never place it at the end of the label.
-- **Every option gets a short reason** — what it buys, and what it costs.
+- **Every option gets a short reason** — its quality, maintainability, reliability, security, and operational consequences. Never use development cost, time, effort, or perceived difficulty as a decision criterion.
 - **`Why A wins:` is mandatory** and must name why the runners-up *lose*. "A is good because X" is a
   failure; "B loses because Y, C loses because Z" is the requirement.
-- **`If wrong:` is mandatory** — the cost of reversing this decision later, so the user knows when to
+- **`If wrong:` is mandatory** — the consequence of revisiting this decision later, so the user knows when to
   think hard and when to take the default.
 - **Close with `Reply with the letter.`**
 
@@ -32,7 +32,7 @@ Q<n> of <m> — <the question>
 <one sentence: what is unknown, and why it matters here>
 
 A. (Recommended) <option label>
-   <short reason — what it buys, what it costs>
+   <short reason — quality and operational consequences>
 B. <option label>
    <short reason>
 C. <option label>
@@ -54,15 +54,15 @@ Q2 of 4 — How should attribute schemas be stored?
 Unknown: whether admins need to change schemas without a deploy.
 
 A. (Recommended) DB table per category
-   Admins edit schemas at runtime; enables faceted filtering later. Costs one migration.
+   Admins edit schemas at runtime; enables faceted filtering later. Requires one migration.
 B. Hardcoded map in the API
    Simplest possible; every schema change needs a redeploy.
 C. JSON blob on the category row
    Avoids a new table; querying individual attributes gets painful.
 
-Why A wins: the spec already lists admin-managed categories, which rules out B outright, and C pays
-the same migration cost as A while losing queryability.
-If wrong: switching A→B later is cheap; C→A needs a data migration.
+Why A wins: the spec already lists admin-managed categories, which rules out B outright, and C
+requires the same migration while losing queryability.
+If wrong: switching A→B removes runtime schema management; C→A requires a data migration.
 
 Reply with the letter.
 ```

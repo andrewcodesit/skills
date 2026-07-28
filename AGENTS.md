@@ -38,6 +38,7 @@ There is no CLI, no postinstall script, and no npm publish workflow. The only co
 - Skills in this repo must stay vendor-neutral by default. Do not write instructions that assume Jira, Azure DevOps, ClickUp, GitLab Issues, or another specific task-management or DevOps platform unless the skill is explicitly about integrating with that platform.
 - Prefer generic terms such as `ticket`, `issue`, `task`, `spec`, `wiki`, or `project management system` over vendor names.
 - If a workflow can consume upstream work items, phrase it so the agent adapts to the system available in the user environment instead of assuming one.
+- For implementation decisions, prioritize output quality, correctness, maintainability, reliability, security where relevant, and established best practice. Never use development cost, development time, implementation effort, or perceived difficulty as a selection criterion.
 
 ## Shared References
 
