@@ -98,7 +98,23 @@ A complete plan lands safely, not just compiles. Flag missing: tests **and** the
 cover, env schema updates and downstream rebuilds, migrations, seed impacts, rollback steps,
 observability (logs, metrics, error handling), CI/build implications.
 
-### 8. Pre-mortem coverage
+### 8. Execution decomposition
+
+Skip when the plan has no Task Ownership table. When it has one, the executing agent will run tasks
+concurrently and pick model capability from it, so a wrong entry here becomes a wasted or corrupted
+run — treat it as load-bearing, not bookkeeping.
+
+Check independence against the code, not the table's own claims: open the files two supposedly
+independent tasks own and confirm neither imports, re-exports, or registers the other's output.
+Barrel files, route tables, schema indexes, migration lists, and DI containers are where false
+independence hides.
+
+Flag: a file owned by two tasks in the same phase, owned files that contradict the File Map, an
+undeclared dependency where one task's text consumes what another produces, a task classified
+`mechanical` or `standard` that Key Contracts or the Pre-mortem also names, a `contract` task large
+enough that it should split, and fan-out with no named integration task or owner.
+
+### 9. Pre-mortem coverage
 
 The feature ships and fails silently 3 months later — what happened?
 
