@@ -12,7 +12,7 @@ Create small, trackable tasks from a spec or goal. Keep task tracking vendor-neu
 ## Process
 
 1. Find the source spec or ask for it.
-2. Ask where tasks should be created. Read `references/question-format.md` and follow it exactly — including the `Why A wins:` and `If wrong:` lines. The options are:
+2. Ask where tasks should be created. Read `references/question-format.md` and follow it exactly - including the `Why A wins:` and `If wrong:` lines. The options are:
    - `A. (Recommended) Global local board` - `~/.agents/tasks/<repo>/<project-slug>/`
    - `B. Repo-local board` - `.agents/tasks/<project-slug>/`
    - `C. External system` - requires a connected project-management MCP/plugin/tool

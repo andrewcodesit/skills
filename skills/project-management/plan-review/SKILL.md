@@ -8,14 +8,14 @@ description: Use when the user asks to review an implementation plan or asks wha
 Announce at start: `Running plan review...`
 
 Review plans like the engineer who has to implement this and will be paged when it fails. A plan
-review is not a summary — stress the plan. Treat it as guilty until its contracts, failure coverage,
+review is not a summary - stress the plan. Treat it as guilty until its contracts, failure coverage,
 and scope discipline prove themselves.
 
 A good plan is the simplest thing that satisfies the spec, names what can go wrong, and proves the
 contracts hold. Complexity is earned, never assumed: for every non-trivial abstraction, the first
 question is whether the spec asked for it or the planner added it.
 
-Judge every planned module against the Four Rules of Simple Design, in priority order — passes
+Judge every planned module against the Four Rules of Simple Design, in priority order - passes
 tests, reveals intention, avoids duplication, fewest elements. Failing #4 while satisfying #1–3 is a
 YAGNI violation; failing #2 or #3 while claiming #4 is a different problem. Name which one you found.
 
@@ -40,7 +40,7 @@ sed -n '1,220p' AGENTS.md 2>/dev/null
 sed -n '1,220p' ~/AGENTS.md 2>/dev/null
 ```
 
-Follow `AGENTS.md`'s **Context Map** for the areas the plan touches — the architecture index and the
+Follow `AGENTS.md`'s **Context Map** for the areas the plan touches - the architecture index and the
 decision log matter most. Read the decision log before calling any structural choice wrong: it
 records what breaks if a decision is reversed.
 
@@ -82,7 +82,7 @@ passed.
 
 Flag pure logic mixed with imperative shell: business logic in a controller or route handler,
 orchestration inside a domain helper, I/O inside a pure computation, database queries in the
-presentation layer. The test: extract the logic from the I/O — does it become trivially
+presentation layer. The test: extract the logic from the I/O - does it become trivially
 unit-testable? If not, the layering is wrong.
 
 ### 6. Security and exposure
@@ -102,7 +102,7 @@ observability (logs, metrics, error handling), CI/build implications.
 
 Skip when the plan has no Task Ownership table. When it has one, the executing agent will run tasks
 concurrently and pick model capability from it, so a wrong entry here becomes a wasted or corrupted
-run — treat it as load-bearing, not bookkeeping.
+run - treat it as load-bearing, not bookkeeping.
 
 Check independence against the code, not the table's own claims: open the files two supposedly
 independent tasks own and confirm neither imports, re-exports, or registers the other's output.
@@ -116,7 +116,7 @@ enough that it should split, and fan-out with no named integration task or owner
 
 ### 9. Pre-mortem coverage
 
-The feature ships and fails silently 3 months later — what happened?
+The feature ships and fails silently 3 months later - what happened?
 
 Flag: happy path only, "edge cases" named without specifics, no test covering the first realistic
 failure, lint or build success treated as proof that stateful or ordered behavior is correct,
@@ -132,7 +132,7 @@ plan: <plan file path or ticket/spec URL>
 issue: <issue key or task id, if any>
 ---
 
-## Plan Review — <plan name>
+## Plan Review - <plan name>
 
 ### Blocking Findings
 - 🔴 [section]: issue → why it matters → what the plan should do instead
@@ -147,9 +147,9 @@ issue: <issue key or task id, if any>
 - Question that must be answered or explicitly accepted as a tradeoff
 
 ### Verdict
-- `ready` — no blocking findings; minor risks only
-- `needs edits` — workable direction, specific corrections required before execution
-- `rewrite` — built on wrong assumptions, wrong layering, or major omissions
+- `ready` - no blocking findings; minor risks only
+- `needs edits` - workable direction, specific corrections required before execution
+- `rewrite` - built on wrong assumptions, wrong layering, or major omissions
 ```
 
 Every finding cites a plan section name or file path, leads with the problem, then why it matters,
@@ -167,13 +167,13 @@ Plan review saved → ~/.agents/plan-reviews/<repo>/<slug>-plan-review.md
 ## Offer resolution
 
 Skip this entirely when the verdict is `ready` with no open questions. Otherwise, read
-`references/question-format.md` and follow its question format and rules — but replace its generic
+`references/question-format.md` and follow its question format and rules - but replace its generic
 Resolution Gates dispositions with these:
 
 1. Grill one-by-one on ambiguous findings only, then apply all accepted corrections to the existing plan
 2. Grill on every finding, then apply the accepted corrections to the existing plan
 3. Apply best judgment on every finding, then edit the existing plan and summarize the amendments
-4. Do nothing — leave the existing plan unchanged
+4. Do nothing - leave the existing plan unchanged
 
 Compute the recommendation: any architecture-level finding, finding crossing 3+ planned files, or
 decomposition decision → recommend **1**, so the material tradeoff is resolved before amending.

@@ -14,15 +14,28 @@ Announce at start: `Running code review...`
 Review like a demanding senior engineer. Find real risks rather than praising effort, and assume
 working code can still be the wrong design.
 
-Be ambitious about simplification. Look past local cleanup for **code-judo** moves — restructurings
+Be ambitious about simplification. Look past local cleanup for **code-judo** moves - restructurings
 that preserve behavior while making the implementation simpler, smaller, and more inevitable. They
 delete branches instead of reorganizing them, remove wrappers instead of polishing them, move logic
 to its canonical layer instead of normalizing drift, and reduce the number of concepts the next
 reader must hold. Prefer a few high-conviction findings over a long list of cosmetic notes.
 
-When judging simplicity, apply the Four Rules of Simple Design in priority order — passes tests,
+When judging simplicity, apply the Four Rules of Simple Design in priority order - passes tests,
 reveals intention, no duplication, fewest elements. A change that shrinks the code but obscures what
 it does fails rule #2 before it satisfies rule #4. Name which failure you found.
+
+## Delegation
+
+The review below reads every changed file in full plus its surrounding context, then returns a saved
+path and a count line. Large input, tiny output: delegate the review itself to a subagent whenever a
+delegation mechanism exists and this session already carries context worth protecting. Give the
+subagent the diff scope, the repo rules it must apply, the output format, and the save path, and let
+it return only the two printed lines - the report reaches you through the file, not the transcript.
+
+Run inline instead when no delegation mechanism exists, when the diff is a handful of lines, or when
+the review depends on conversation context a briefing cannot carry. Never lower the reviewing
+capability to save tokens; this is the step that has to be right. The resolution gate below always
+stays with the main agent, which reads the saved report before offering it.
 
 ## Priorities
 
@@ -47,11 +60,11 @@ minified, snapshot, build, and binary files. Read the minimum needed to judge wh
 correct and whether the design is getting better or worse.
 
 **Load repo rules.** Read the project's agent instructions and contribution docs, and extract only the
-rules that bear on this review — architecture boundaries, required patterns, banned patterns, testing
+rules that bear on this review - architecture boundaries, required patterns, banned patterns, testing
 expectations, and naming or style rules that are enforced rather than merely preferred. Clear
 violations are findings; not every convention mismatch is a blocker.
 
-**Audit both sides of every boundary the diff touches** — API request/response contracts, app/database
+**Audit both sides of every boundary the diff touches** - API request/response contracts, app/database
 and query-layer contracts, runtime validation against compile-time types, generated/manual artifact
 boundaries, config and runtime defaults, auth and access control, and ordered or stateful behavior
 such as pagination, deduplication, retries, ranking, and cache invalidation. Apply Design by Contract
@@ -74,10 +87,10 @@ file.
 - runtime validation weaker than the types suggest
 - stale generated artifacts, fixtures, or clients
 - tests covering helpers while the real boundary behavior stays unverified
-- **CQS violations** — functions that return a value *and* mutate state
-- **Rule of Three violations** — new abstractions generalizing fewer than 3 existing cases without a
+- **CQS violations** - functions that return a value *and* mutate state
+- **Rule of Three violations** - new abstractions generalizing fewer than 3 existing cases without a
   concrete reason
-- **Functional core / imperative shell violations** — pure business logic mixed with I/O,
+- **Functional core / imperative shell violations** - pure business logic mixed with I/O,
   orchestration embedded in domain helpers, database queries in the presentation layer
 
 **File size.** Treat sprawl as a strong smell: challenge by default any PR pushing a file past 1000
@@ -85,10 +98,10 @@ lines, and check whether decomposition is already overdue when a changed file la
 range. Name the logical splits rather than saying "split this up."
 
 **Stack-specific pressure**, applied only where it materially affects correctness or maintainability:
-TypeScript — unjustified `any`, unsafe casts, vague object shapes, fake optionality. React/Nuxt/Next
-— branching-heavy components, state and orchestration and rendering jammed together, avoidable
+TypeScript - unjustified `any`, unsafe casts, vague object shapes, fake optionality. React/Nuxt/Next
+- branching-heavy components, state and orchestration and rendering jammed together, avoidable
 client/server boundary confusion, long `<script setup>` bodies that want decomposing into adjacent
-helpers, constants, or scoped composables. Backend — orchestration mixed with core business logic,
+helpers, constants, or scoped composables. Backend - orchestration mixed with core business logic,
 duplicated query patterns, partial updates that should be atomic. Flag framework advice only when it
 improves this design.
 
@@ -105,11 +118,11 @@ fallbacks, add the missing higher-level test that proves the behavior where it m
 
 Findings ordered by severity, each with a `file:line` citation:
 
-- `🔴 Issues` — correctness, contract, architecture, or serious maintainability problems
-- `📏 Rules & Conventions` — repo-rule or established-pattern violations
-- `🟡 Refactor Opportunities` — worthwhile cleanups that are not blockers
-- `🟢 Quick Wins` — small, concrete improvements
-- `💡 Bigger Picture` — only for a real architecture-level concern
+- `🔴 Issues` - correctness, contract, architecture, or serious maintainability problems
+- `📏 Rules & Conventions` - repo-rule or established-pattern violations
+- `🟡 Refactor Opportunities` - worthwhile cleanups that are not blockers
+- `🟢 Quick Wins` - small, concrete improvements
+- `💡 Bigger Picture` - only for a real architecture-level concern
 
 With no findings, say so explicitly and name any residual testing or context gaps. Say "looks good
 overall" only when the diff is genuinely clean, and leave out compliments that teach nothing.
@@ -131,7 +144,7 @@ layer, and no missed simplification where a cleaner path is visible.
 ## Offer resolution
 
 Skip this when there are no findings. Otherwise read `references/question-format.md` and follow its
-Resolution Gates section — the standard dispositions, the computed recommendation, and the gate
+Resolution Gates section - the standard dispositions, the computed recommendation, and the gate
 format. Offer only the dispositions that apply. Record the gate answer and every per-finding decision
 in a `## Decisions` section appended to the saved review.
 
