@@ -7,143 +7,106 @@ description: Use when the user asks to review an implementation plan or asks wha
 
 Announce at start: `Running plan review...`
 
-Review plans like a senior engineer who has to implement this and will be paged when it fails. Treat every plan as guilty until it proves its contracts, failure coverage, and scope discipline are real.
+Review plans like the engineer who has to implement this and will be paged when it fails. A plan
+review is not a summary — stress the plan. Treat it as guilty until its contracts, failure coverage,
+and scope discipline prove themselves.
 
-A plan review is not a summary. Stress the plan.
+A good plan is the simplest thing that satisfies the spec, names what can go wrong, and proves the
+contracts hold. Complexity is earned, never assumed: for every non-trivial abstraction, the first
+question is whether the spec asked for it or the planner added it.
 
-## Core Thesis
+Judge every planned module against the Four Rules of Simple Design, in priority order — passes
+tests, reveals intention, avoids duplication, fewest elements. Failing #4 while satisfying #1–3 is a
+YAGNI violation; failing #2 or #3 while claiming #4 is a different problem. Name which one you found.
 
-A good plan is the simplest thing that satisfies the spec, names what can go wrong, and proves the contracts hold.
-
-Challenge complexity. The first question for every non-trivial abstraction: did the spec ask for this, or did the planner add it? Apply Gall's Law: a complex system designed from scratch never works. Complexity must be earned, not assumed.
-
-Use the Four Rules of Simple Design as the underlying standard for every planned module — in priority order:
-1. Will it pass all tests?
-2. Does it reveal intention?
-3. Does it avoid duplication?
-4. Does it use the fewest possible elements?
-
-Failing #4 while satisfying #1–3 is a YAGNI violation. Failing #2 or #3 while claiming #4 is a different problem. Know which failure you're looking at.
-
-## Review Lenses
+## Lenses
 
 Work through these in order.
 
-### 0. Source Spec Alignment
+### 0. Source spec alignment
 
-If the plan references an upstream issue, ticket, or spec page, fetch and read it first. To resolve which tracker to fetch from, check the repo's `AGENTS.md`/`CLAUDE.md` for a configured project-management system (Jira, Linear, GitHub Issues, etc.) and use it; if none is configured, ask the user or work from the local reference the plan already cites. Never judge the plan against your interpretation of the task — judge it against the actual spec.
+If the plan references an upstream issue, ticket, or spec, fetch and read it first. To find the
+tracker, check the repo's `AGENTS.md`/`CLAUDE.md` for a configured project-management system; if none
+is configured, ask the user or work from the reference the plan already cites. Judge the plan against
+the actual spec, never your interpretation of the task.
 
-Flag when the plan:
-- Misses acceptance criteria
-- Adds scope the task never asked for
-- Solves a different problem
-- Claims decisions are settled when the spec does not support that
+Flag: missed acceptance criteria, scope the task never asked for, a different problem being solved,
+decisions claimed as settled that the spec does not support.
 
-### 1. Repo Rules and Architecture
-
-Read before judging:
+### 1. Repo rules and architecture
 
 ```bash
 sed -n '1,220p' AGENTS.md 2>/dev/null
-sed -n '1,220p' context/code-standards.md 2>/dev/null
-sed -n '1,220p' context/architecture-context.md 2>/dev/null
 sed -n '1,220p' ~/AGENTS.md 2>/dev/null
 ```
 
-Flag when the plan:
-- Violates explicit repo rules
-- Puts work in the wrong app, package, or layer
-- Proposes structures that conflict with current project patterns
+Follow `AGENTS.md`'s **Context Map** for the areas the plan touches — the architecture index and the
+decision log matter most. Read the decision log before calling any structural choice wrong: it
+records what breaks if a decision is reversed.
 
-### 2. Codebase Reality Check
+Flag: explicit repo-rule violations, work placed in the wrong app/package/layer, structures that
+conflict with current project patterns.
 
-A plan review is not theoretical. Read the actual files.
+### 2. Codebase reality check
 
-For each planned file or subsystem:
-- Verify the file exists or not
-- Read the module that would be modified
-- Search for existing implementations of the same concept
+A plan review that doesn't open files is a theoretical exercise. For each planned file or subsystem:
+confirm whether it exists, read the module that would change, and search for existing implementations
+of the same concept.
 
-```bash
-rg --files
-rg -n "symbolName|routePath|envVar|queue|middlewareName" .
-sed -n '1,220p' path/to/file.ts
-```
+Flag: re-creating something that exists, missing an obvious abstraction it should extend, targeting
+the wrong file because the architecture settled elsewhere, assuming framework behavior that doesn't
+match the current app setup.
 
-Flag when the plan:
-- Re-creates something that already exists
-- Misses an obvious abstraction it should extend
-- Targets the wrong file because the architecture already settled elsewhere
-- Assumes framework behavior that doesn't match the current app setup
-
-### 3. YAGNI and Complexity Discipline
+### 3. YAGNI and complexity discipline
 
 Every abstraction the spec didn't ask for is a finding.
 
-Flag when the plan:
-- Abstracts a pattern that appears fewer than 3 times in the codebase (Rule of Three)
-- Adds generalization, extensibility, or configurability the spec did not require
-- Designs for future requirements not in scope
-- Introduces a new dependency when the stack already handles it
-- Proposes a multi-step architecture where a simpler one would satisfy the spec
+Flag: abstractions generalizing fewer than 3 existing cases, generalization/extensibility/
+configurability the spec did not require, design for out-of-scope future requirements, a new
+dependency where the stack already handles it, multi-step architecture where a simpler one satisfies
+the spec.
 
-### 4. Contract Integrity
+### 4. Contract integrity
 
-For any plan touching more than one layer, inspect the boundary contracts it depends on.
+For any plan touching more than one layer, inspect the boundary contracts it depends on. Every new
+endpoint, job, or write path should name its preconditions (what the caller guarantees),
+postconditions (what the callee guarantees on return), and invariants (what stays true throughout).
+Unnamed, it is a hope rather than a contract.
 
-Apply Design by Contract: for every new endpoint, job, or write path, the plan should name the preconditions (what the caller must guarantee), postconditions (what the callee guarantees on return), and invariants (what must stay true throughout). If none of these are named, the boundary is not a contract — it's a hope.
+Flag: one side of a contract changed without the other, a value assumed configurable that another
+layer fixes, ordered behavior (pagination, retries, deduplication) without a tie-break or idempotency
+rule, generated artifacts consumed without a refresh step, validation that only proves the build
+passed.
 
-Flag when the plan:
-- Changes one side of a contract without addressing the other
-- Assumes a value is configurable when another layer fixes it
-- Describes ordered behavior (pagination, retries, deduplication) without naming the tie-break or idempotency rule
-- Consumes generated artifacts without a refresh/verification step
-- Has no validation step that proves cross-layer agreement — only that the build passed
+### 5. Layer discipline
 
-### 5. Functional Layer Discipline
+Flag pure logic mixed with imperative shell: business logic in a controller or route handler,
+orchestration inside a domain helper, I/O inside a pure computation, database queries in the
+presentation layer. The test: extract the logic from the I/O — does it become trivially
+unit-testable? If not, the layering is wrong.
 
-Flag when the plan mixes pure logic with imperative shell:
-- Business logic in a controller or route handler
-- Orchestration embedded in a domain helper
-- I/O inside a pure computation function
-- Database queries in a presentation layer
+### 6. Security and exposure
 
-The test: if you extracted the logic from the I/O, would it become trivially unit-testable? If not, the layering is wrong.
+Flag: admin/debug/ops endpoints without an explicit auth and authorization step, logging of secrets,
+JWTs, headers, or PII, trusted user input at a webhook/callback/internal endpoint, sensitive values in
+committed files, plan docs, fixtures, or example curl commands, surfaces opened that should stay
+internal.
 
-### 6. Security and Exposure
+### 7. Delivery completeness
 
-Flag when the plan:
-- Exposes admin, debug, or ops endpoints without explicit auth and authorization review
-- Proposes logging secrets, JWTs, headers, or PII
-- Trusts user input at a webhook, callback, or internal endpoint
-- Puts sensitive values in committed files, plan docs, fixtures, or example curl commands
-- Opens a surface that should stay internal
+A complete plan lands safely, not just compiles. Flag missing: tests **and** the failure paths they
+cover, env schema updates and downstream rebuilds, migrations, seed impacts, rollback steps,
+observability (logs, metrics, error handling), CI/build implications.
 
-### 7. Delivery Completeness
+### 8. Pre-mortem coverage
 
-A complete plan covers the work needed to land safely, not just the main code files.
+The feature ships and fails silently 3 months later — what happened?
 
-Flag missing:
-- Tests — and which failure paths they cover, not just "tests will be added"
-- Env schema updates and downstream rebuild steps
-- Migrations, seed impacts, or rollback steps
-- Observability: logs, metrics, error handling
-- CI/build implications
+Flag: happy path only, "edge cases" named without specifics, no test covering the first realistic
+failure, lint or build success treated as proof that stateful or ordered behavior is correct,
+minimal-valid-input behavior described without a step that verifies it.
 
-### 8. Pre-mortem Coverage
-
-Imagine the feature ships and fails silently 3 months later. What happened?
-
-Flag when the plan:
-- Covers only the happy path
-- Names "edge cases" without specifying them
-- Has no test covering the first realistic failure scenario
-- Treats lint or build success as proof that stateful or ordered behavior is correct
-- Describes minimal-valid-input behavior without a step to verify it
-
-## Output Format
-
-Use this structure every time:
+## Output
 
 ```markdown
 ---
@@ -173,59 +136,38 @@ issue: <issue key or task id, if any>
 - `rewrite` — built on wrong assumptions, wrong layering, or major omissions
 ```
 
-Rules:
-- Omit any section that has no items except `Verdict`
-- Every finding cites a plan section name or file path — never report without a reference
-- Lead with the problem, then why it matters, then the correction
-- Put true blockers only in Blocking Findings
-- Do not pad with non-findings or generic advice
+Every finding cites a plan section name or file path, leads with the problem, then why it matters,
+then the correction. Only true blockers go in Blocking Findings. Omit any empty section except
+`Verdict`. Say "the plan looks solid" only with zero findings; a plan carrying TBDs is never `ready`.
 
-## Save the Review
-
-Write the full review to:
-
-```
-~/.agents/plan-reviews/<repo>/<slug>-plan-review.md
-```
-
-Slug priority: issue key or task id → plan filename → current branch name. Append `-plan-review`.
-
-Print only the saved path and a finding-count breakdown:
+Save the full review to `~/.agents/plan-reviews/<repo>/<slug>-plan-review.md`, slug priority: issue
+key or task id → plan filename → current branch name.
 
 ```
 Plan review saved → ~/.agents/plan-reviews/<repo>/<slug>-plan-review.md
-7 findings: 2 🔴, 1 📏, 3 🟡, 1 🟢
+7 findings: 2 🔴, 3 🟡, 2 open questions
 ```
 
-## Offer Resolution
+## Offer resolution
 
-If the review contains any Blocking Findings, Non-Blocking Risks, Missing Steps, or Open Questions, offer a resolution gate.
+Skip this entirely when the verdict is `ready` with no open questions. Otherwise, read
+`references/question-format.md` and follow its question format and rules — but replace its generic
+Resolution Gates dispositions with these:
 
-Read `references/question-format.md` first and follow its Resolution Gates section exactly — the standard dispositions, the computed recommendation, and the format of the gate itself.
+1. Grill one-by-one on ambiguous findings only, then apply all accepted corrections to the existing plan
+2. Grill on every finding, then apply the accepted corrections to the existing plan
+3. Apply best judgment on every finding, then edit the existing plan and summarize the amendments
+4. Do nothing — leave the existing plan unchanged
 
-If that file cannot be read, stop and tell the user:
+Compute the recommendation: any architecture-level finding, finding crossing 3+ planned files, or
+decomposition decision → recommend **1**, so the material tradeoff is resolved before amending.
+Otherwise → recommend **3**.
 
-> Question-format reference not found at `references/question-format.md`.
-> I can't ask questions in the standardized format without it.
->
-> Continue anyway with an improvised format, or stop so you can fix the file?
+The plan under review is the only plan artifact, and the saved review is its audit trail. Apply every
+correction by editing that exact plan file in place, preserving its format and intent. This skill
+never creates a new plan and never hands findings to the planning skill.
 
-Then wait. Never improvise silently and never continue as if the format were loaded.
-
-Print the saved path and a finding-count breakdown before the gate, then offer only the dispositions that apply to this review. Wait for the user's answer before proceeding.
-
-Record the gate answer and every per-finding decision in a `## Decisions` section appended to the saved review file.
-
-If verdict is `ready` with no open questions, skip this step entirely.
-
-## Anti-Slop Rules
-
-- Never say "the plan looks solid" unless there are zero findings
-- Never report a finding without citing the plan section or file
-- Never accept "tests will cover it" without naming the failure path those tests exercise
-- Never let a plan with TBDs pass as `ready`
-- Never review the plan in isolation if an upstream issue or ticket exists — always fetch it
-- Never skip the codebase check — a plan review that doesn't open files is a theoretical exercise
-- Never treat complexity as neutral — every abstraction the spec didn't ask for is a finding
-- Never flag a risk without saying what the actual risk is
-- Never stop at the happy path when the plan describes a write, migration, or cross-layer flow
+Wait for the answer. Record the gate answer and every per-finding decision in a `## Decisions` section
+appended to the review file, preserving accepted tradeoffs and any rejected finding that materially
+constrains implementation. After applying corrections, re-read the amended plan and report which
+sections changed.

@@ -5,130 +5,77 @@ description: Generates a comprehensive handoff spec for the current session so a
 
 # Handoff
 
-## Overview
+Announce at start: `Generating a handoff doc...`
 
-Capture the full context of the current session into a structured `.md` spec file and save it to `~/.agents/handoffs/`. The output doc must be self-contained — another agent reading it cold should be able to continue work without asking the user a single clarifying question.
+Capture the full context of this session into a `.md` spec another agent can act on cold, without
+asking the user a single clarifying question. Self-containment is the whole bar.
 
-**Announce at start:** "I'm generating a handoff doc for this session."
+## 1. Gather context
 
----
+Pull all of it before writing anything — the doc is only as good as this step:
 
-## Step 1: Gather Context
+- Repo name from the working directory or `git remote get-url origin`
+- Active branch (`git branch --show-current`)
+- Uncommitted changes (`git status --short`, `git diff --stat`)
+- Recent commits (`git log --oneline -10`)
+- Existing plans, specs, and tasks under `~/.agents/plans|specs|tasks/<repo-name>/`
+- This conversation: goals, decisions made, files touched, problems hit, solutions found, open
+  questions, and what was left unfinished
 
-Before writing anything, pull together all available context:
+## 2. Write the doc
 
-- **Current working directory** — determine the repo name from the path or `git remote get-url origin`
-- **Active branch** — `git branch --show-current` (if in a git repo)
-- **Uncommitted changes** — `git status --short` and `git diff --stat` (if in a git repo)
-- **Recent commits on this branch** — `git log --oneline -10` (if in a git repo)
-- **Existing plans/specs/tasks for this repo** — check `~/.agents/plans/<repo-name>/`, `~/.agents/specs/<repo-name>/`, and `~/.agents/tasks/<repo-name>/`
-- **Session conversation** — review this conversation for: goals, decisions made, files touched, problems hit, solutions found, open questions, and what was left unfinished
-
-Do not skip this step. The quality of the handoff doc depends entirely on it.
-
----
-
-## Step 2: Write the Handoff Doc
-
-Create the file at:
-
-```
-~/.agents/handoffs/<repo-name>-<YYYY-MM-DD>-<short-slug>.md
-```
-
-Where `<short-slug>` is a 2–4 word kebab-case summary of the task (e.g. `auth-refactor`, `beat-upload-fix`, `onboarding-flow`).
-
-If not in a git repo, use `scratch` as the repo name.
-
-### Required Sections
+Save to `~/.agents/handoffs/<repo-name>-<YYYY-MM-DD>-<short-slug>.md`, where the slug is 2–4
+kebab-case words (`auth-refactor`, `beat-upload-fix`). Outside a git repo, use `scratch` as the repo
+name.
 
 ```markdown
 # Handoff: <Task Title>
 
-**Repo:** <repo-name>  
-**Branch:** <branch-name or "no git">  
-**Date:** <YYYY-MM-DD>  
+**Repo:** <repo-name>
+**Branch:** <branch-name or "no git">
+**Date:** <YYYY-MM-DD>
 **Session summary:** <1–2 sentences — what we were doing and why>
 
----
-
 ## Goal
-
-<What the agent taking over should achieve. Be specific. Include acceptance criteria if known.>
-
----
+What the incoming agent should achieve, with acceptance criteria when known.
 
 ## Current State
-
-<Where things stand RIGHT NOW. What works, what doesn't, what's half-done. Be honest — don't round up.>
-
----
+Where things stand right now: what works, what doesn't, what's half-done. Report it honestly rather
+than rounding up. List uncommitted changes explicitly so the agent knows the tree is dirty. If the
+session was exploratory with no concrete output, say exactly that.
 
 ## What Was Done This Session
-
-<Bullet list of completed work. Include file paths and line numbers where relevant.>
-
----
+Completed work, with file paths and line numbers where relevant.
 
 ## Decisions Made
-
-<Any non-obvious choices made during this session and the reasoning behind them. Future agent must not re-litigate these unless explicitly told to.>
-
----
+Non-obvious choices and the reasoning behind them. This section is what stops the next agent from
+re-litigating settled questions, so it always has content.
 
 ## Next Steps
-
-<Ordered list of what to do next. Be specific enough that the agent can start on step 1 without any clarification.>
-
----
+Ordered and specific — name the file, the function, and the change, so step 1 needs no clarification.
 
 ## Open Questions
-
-<Anything unresolved, ambiguous, or left for the user to decide. If none, write "None.">
-
----
+Anything unresolved or left for the user to decide. "None." if there are none.
 
 ## Key Files
-
-<List of the most relevant files the incoming agent should read first. Include brief descriptions.>
-
-```
 - `path/to/file.ts` — what it does and why it matters here
-```
-
----
 
 ## Constraints & Gotchas
-
-<Things the incoming agent must NOT do, edge cases it must handle, and non-obvious constraints discovered this session. Include anything that would cause a reasonable agent to make the same mistake you already avoided.>
-
----
+What the incoming agent must avoid, edge cases it must handle, and the non-obvious constraints
+discovered this session — especially any mistake you already avoided that a reasonable agent would
+walk straight into.
 
 ## Environment Notes
-
-<Anything specific to running/testing this locally — commands, env vars, credentials pattern, known flaky tests, etc. Omit if nothing unusual.>
+Commands, env vars, credential patterns, known flaky tests. Omit when nothing is unusual.
 ```
 
-Fill every section. Use "None." or "N/A" only if a section genuinely doesn't apply — never leave a section blank.
+Fill every section; "None." or "N/A" only where one genuinely doesn't apply.
 
----
+## 3. Surface it
 
-## Step 3: Confirm and Surface
+Print the full path, show the **Goal**, **Current State**, and **Next Steps** sections inline so the
+user can spot-check, and close with:
 
-After writing the file:
+> Handoff doc saved. Pass `~/.agents/handoffs/<filename>` to the next agent to continue.
 
-1. Print the full path to the handoff doc.
-2. Show the user the **Goal**, **Current State**, and **Next Steps** sections inline (so they can spot-check without opening the file).
-3. Say: "Handoff doc saved. Pass `~/.agents/handoffs/<filename>` to the next agent to continue."
-
-Do not summarize the whole doc — just those three sections. The user can read the rest themselves.
-
----
-
-## Red Flags
-
-- **Never** write vague next steps like "continue the implementation" — be specific about what file, what function, what change
-- **Never** omit the Decisions Made section — it prevents the next agent from re-asking questions already answered
-- **Never** skip Constraints & Gotchas — this is where hard-won session knowledge lives
-- If the session was exploratory with no concrete output, say so clearly in Current State rather than inventing progress
-- If there are uncommitted changes, list them explicitly in Current State so the incoming agent knows the working tree is dirty
+The user can read the rest themselves — keep the other sections out of chat.
