@@ -14,10 +14,11 @@ Announce at start: `Running code review...`
 Review like a demanding senior engineer. Find real risks rather than praising effort, and assume
 working code can still be the wrong design.
 
-Be ambitious about simplification. Look past local cleanup for changes that delete branches instead
-of reorganizing them, remove wrappers instead of polishing them, move logic to its canonical layer
-instead of normalizing drift, and reduce the number of concepts the next reader must hold. Prefer a
-few high-conviction findings over a long list of cosmetic notes.
+Be ambitious about simplification. Look past local cleanup for **code-judo** moves — restructurings
+that preserve behavior while making the implementation simpler, smaller, and more inevitable. They
+delete branches instead of reorganizing them, remove wrappers instead of polishing them, move logic
+to its canonical layer instead of normalizing drift, and reduce the number of concepts the next
+reader must hold. Prefer a few high-conviction findings over a long list of cosmetic notes.
 
 When judging simplicity, apply the Four Rules of Simple Design in priority order — passes tests,
 reveals intention, no duplication, fewest elements. A change that shrinks the code but obscures what
@@ -61,7 +62,7 @@ file.
 
 ## Flag aggressively
 
-- a simpler reframing that would delete whole categories of complexity
+- a code-judo reframing that would delete whole categories of complexity
 - new conditionals bolted into already busy flows
 - feature logic leaking into shared or general-purpose paths
 - wrappers, pass-through helpers, or abstractions adding indirection without clarity
@@ -93,7 +94,8 @@ improves this design.
 
 ## Remedies
 
-Every finding names a concrete better shape. Prefer: delete a layer of indirection, extract a pure
+Every finding names a concrete better shape. Prefer the code-judo moves: delete a layer of
+indirection, extract a pure
 helper or engine, move logic to the module that already owns the concept, replace special-case
 branching with a simpler model, collapse duplicate flows into one path, split a large file by
 responsibility, make the contract explicit at the boundary instead of papering over it with casts or
