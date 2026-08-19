@@ -5,134 +5,91 @@ description: Use when the user approves a plan and says "go", "go for it", "exec
 
 # Execute Plan
 
-## Mandatory approval gate
+Announce at start: `Executing the plan...`
 
-Only run this skill after the user has seen the plan and explicitly approved it in a later turn, or has invoked `/execute` in a later turn. **Never infer approval from the existence of a plan file, from the user's initial request to start work, or from same-turn wording such as “go,” “let’s do it,” or “implement it” before the plan was presented.** If the plan has not been presented and separately approved, stop and present the plan instead of changing files.
+Take an approved plan and implement it, then prove the implementation right before calling it done.
+"The code compiles and tests pass" is not the bar — this skill verifies that the plan's boundary
+contracts survived implementation and that no silent behavioral bug is hiding behind green checks.
 
-## Overview
+**Approval gate:** run this only after the user has seen the plan and approved it in a later turn, or
+invoked `/execute` in a later turn. A plan file on disk is not authorization. Same-turn wording like
+"go" or "let's do it" spoken *before* the plan was presented is not authorization either — present
+the plan and stop instead.
 
-Take an approved plan and implement it - dispatching parallel subagents for independent tasks, or executing inline for sequential ones. Review the result before offering next steps.
-
-**Announce at start:** "I'm using the execute skill to implement this plan."
-
-Execution quality is not "the code compiles and tests pass." This skill must verify that the implementation preserved the plan's boundary contracts and does not hide silent behavioral bugs behind green checks.
-
----
-
-## Step 1: Load the Plan
-
-Find the most recent unexecuted plan for this repo:
+## 1. Load the plan
 
 ```bash
 ls ~/.agents/plans/<repo-name>/ | grep -v '^EXECUTED-' | sort | tail -5
 ```
 
-If multiple plans exist, show the list and ask which one to execute. If only one exists, load it, but do not proceed until the approval gate above is satisfied. A plan file alone is never authorization to implement.
+With multiple candidates, show the list and ask which to execute. Keep the exact path — step 5 needs
+it. Read the whole plan and extract the tasks with their file paths and dependencies, the goal and
+architecture notes, the out-of-scope items, and the key contracts and failure modes it calls out.
 
-Store the exact plan file path you loaded in a variable for later. You will need that same path in Step 5 when marking the plan as executed.
+## 2. Choose the execution mode
 
-Read the full plan. Extract:
-- All tasks (with their steps, file paths, and dependencies)
-- Goal and architecture notes
-- Out-of-scope items
-- Key contracts and failure modes called out by the plan
+Go **parallel** (one subagent per task) only when all three hold: tasks touch different files, no
+task consumes a type, function, or output another creates, and order is irrelevant to correctness.
 
----
+Go **sequential** (inline) otherwise — when task N creates what N+1 imports, when a shared file
+(index, router, schema) is touched across tasks, or when order affects correctness. When in doubt,
+sequential: a wrong parallel run costs more to untangle than a slow serial one.
 
-## Step 2: Determine Execution Mode
+## 3. Execute
 
-Analyze task dependencies:
+**Parallel.** Each subagent prompt carries the full task text pasted verbatim (subagents never read
+the plan file), the repo context — working directory, stack, the conventions from `AGENTS.md` — the
+files to read first, the constraint "the user owns all git operations; do not commit or push" unless
+`AGENTS.md` overrides it for this repo, and the instruction to report back `DONE`,
+`DONE_WITH_CONCERNS`, `NEEDS_CONTEXT`, or `BLOCKED`. Wait for all of them before step 4. Surface any
+`BLOCKED` you cannot resolve to the user before continuing other tasks.
 
-**Parallel (subagents)** - tasks qualify when ALL of the following are true:
-- They touch different files (no shared writes)
-- No task relies on a type, function, or output created by another task in this plan
-- Order doesn't matter for correctness
+**Sequential.** Work the plan's checkbox steps in order, verifying each task's files exist and look
+right before moving on.
 
-**Sequential (inline)** - use when ANY of the following is true:
-- Task N creates code that Task N+1 imports or extends
-- A shared file (e.g. index.ts, router, schema) is modified across tasks
-- Task order affects correctness
+Either way: when a task changes generated artifacts, runtime config, migrations, ordering logic, or
+cross-layer contracts, complete the codegen, type refresh, and dependent-file updates inside the same
+execution flow rather than leaving them as implied follow-up.
 
-When in doubt, choose sequential - a wrong parallel execution is harder to fix than a slow sequential one.
+## 4. Review the implementation
 
----
+Three passes, all of them, even when the implementation looks obviously correct.
 
-## Step 3: Execute
+**Spec compliance.** Every plan requirement has corresponding code, file paths match what the plan
+specified, out-of-scope items stayed unimplemented, and nothing extra was added.
 
-### Mode A: Parallel (independent tasks)
+**Repo standards.** Read `AGENTS.md`, then `CLAUDE.md` if it carries its own rules rather than a
+pointer, then `~/.claude/CLAUDE.md`; repo-specific rules override global ones. Check the standards
+you find — typically naming conventions, file placement, absence of AI or assistant attribution in
+code and comments, consistent reuse of shared helpers and schemas instead of inlined copies, and any
+repo-specific pattern the context map calls out.
 
-Dispatch one subagent per task simultaneously. Each subagent prompt must include:
+**Adversarial correctness.** Try to prove the implementation wrong. Check the plan's contracts and
+failure modes against the real code:
 
-1. **The full task text** (copy verbatim from the plan - do not make them read the plan file)
-2. **Repo context:** working directory, tech stack, relevant conventions from AGENTS.md/CLAUDE.md
-3. **What files to read before starting** (from the repo's context map if one exists)
-4. **Explicit constraint:** "Do NOT commit. Do NOT push. User owns all git operations." — unless AGENTS.md explicitly overrides this for the repo.
-5. **Status instruction:** Report back with DONE, DONE_WITH_CONCERNS, NEEDS_CONTEXT, or BLOCKED
+- **Cross-layer agreement** — do types, runtime validation, persisted schema, generated artifacts,
+  and docs all agree?
+- **Sibling consistency** — do parallel implementations of one pattern share guards, abstractions,
+  and boundary behavior?
+- **Ordering and state** — are pagination, sorting, deduplication, retries, cursors, idempotency, and
+  cache invalidation stable at the boundaries?
+- **Config drift** — does every configurable value have a real consumer, and is anything falsely
+  presented as configurable?
+- **Negative paths** — do malformed input, failed integrations, permission failures, empty states, and
+  partial results fail in a controlled way?
+- **Minimal valid input** — for write paths accepting sparse input, what happens with only the minimum
+  allowed fields?
+- **Validation depth** — do tests exercise the real boundary, or only narrow helpers while route and
+  integration behavior stays unproven?
 
-Wait for all subagents to complete before proceeding to Step 4.
+Green lint, build, and tests do not settle any of the above when the change touched ordered behavior,
+schema contracts, or multi-layer integration. Reach for the higher-layer verification whenever it is
+feasible: a new endpoint, integration, migration, parser, or stateful workflow needs more than a
+helper-level test.
 
-### Mode B: Sequential (inline)
+## 5. Report
 
-Execute each task step by step in the current session, following the plan's checkbox steps exactly. Do not skip steps. After each task, verify the expected files exist and look correct before moving to the next.
-
-When a task changes generated artifacts, runtime config, migrations, ordering logic, or cross-layer contracts, complete the synchronization steps in the same execution flow. Do not leave codegen/type refresh or dependent file updates as implied follow-up work.
-
----
-
-## Step 4: Review Implementation
-
-After all tasks complete, run a three-pass review.
-
-### Pass 1 - Spec Compliance
-
-Compare the implementation against the plan's requirements:
-- Every requirement in the plan has corresponding code
-- Nothing extra was added beyond the spec
-- File paths match what the plan specified
-- Out-of-scope items were NOT implemented
-
-### Pass 2 - Repo Standards
-
-Read the following in order (repo-specific rules override global ones):
-1. `AGENTS.md` in the project root (if it exists)
-2. `CLAUDE.md` in the project root (if it exists, and if it contains its own rules - not just a pointer)
-3. `~/.claude/CLAUDE.md` (global fallback)
-
-Check against the standards found. Common things to verify:
-- Naming conventions (e.g. BEM for SCSS classes)
-- File placement matches project structure
-- No AI/assistant attribution in code or comments
-- Commit format if commits were made (only relevant if AGENTS.md permits git actions)
-- Shared helpers, shared schemas, and common utilities are reused consistently instead of being inlined into sibling implementations
-- Any repo-specific patterns called out in `context/` files if a context map exists
-
-### Pass 3 - Adversarial Correctness
-
-Try to prove the implementation wrong before calling it done. Check the contracts and failure modes from the plan against the real code.
-
-At minimum, review these categories when relevant:
-- **Cross-layer agreement:** do types, runtime validation, persisted schema, generated artifacts, and docs all agree?
-- **Sibling consistency:** when the plan created parallel implementations of the same pattern, do they use the same guards, shared abstractions, and boundary behavior?
-- **Ordering/stateful behavior:** are pagination, sorting, deduplication, retries, cursor logic, idempotency, or cache invalidation stable at boundaries?
-- **Config drift:** does every configurable value have a real consumer, and is anything falsely presented as configurable?
-- **Negative paths:** do malformed input, failed integrations, permission failures, empty states, and partial results fail in a controlled way?
-- **Minimal valid input:** for write paths that accept sparse or partial input, what happens when the payload contains only the minimum allowed fields or is otherwise structurally valid but effectively empty?
-- **Validation depth:** do tests exercise the correct layer, or only narrow helpers while route/integration behavior remains unproven?
-
-Do not treat passing lint/build/tests as sufficient if the implementation changed ordered behavior, schema contracts, or multi-layer integration points.
-
-### Post-review offers
-
-- If the work removed, renamed, or moved behavior, offer to run `cleanup` to catch dead imports, stale harnesses, or orphaned UI affordances left behind by the refactor.
-- If UI behavior changed, offer `verify-ui` — but only run browser-based, visual, or interactive verification with explicit user approval in the current turn. Never launch it on your own.
-
----
-
-## Step 5: Report Results
-
-### If issues were found (either pass):
-
-Present a clean summary:
+**When the review found issues:**
 
 ```
 ## Review Findings
@@ -140,76 +97,44 @@ Present a clean summary:
 ### Spec gaps
 - [ ] <specific issue and where>
 
-### Standards violations  
+### Standards violations
 - [ ] <specific issue and where>
 
 ### Behavioral risks
 - [ ] <silent bug, cross-layer drift, or boundary issue and where>
 ```
 
-Then offer a resolution gate.
+Then read `references/question-format.md` and offer a resolution gate per its Resolution Gates
+section. These findings come from adversarial review of just-written code, so they skew structural:
+when a finding is architecture-level, crosses 3+ files, or is a decomposition, route it back through
+the planning skill rather than patching inline. Offer only the dispositions that apply, and wait for
+approval — fix work is offered, never presented as already done.
 
-Read `references/question-format.md` and follow its Resolution Gates section exactly — the standard dispositions, the computed recommendation, and the format of the gate itself.
+**When it found none:** say "Implementation complete, review passed."
 
-If that file cannot be read, stop and tell the user:
+**Then, always:**
 
-> Question-format reference not found at `references/question-format.md`.
-> I can't ask questions in the standardized format without it.
->
-> Continue anyway with an improvised format, or stop so you can fix the file?
-
-Then wait. Never improvise silently and never continue as if the format were loaded.
-
-Offer only the dispositions that apply. These findings come from adversarial review of just-written code, so they are more likely than usual to be structural — when a finding is architecture-level, crosses 3+ files, or is a decomposition, recommend routing it back through the planning skill rather than patching inline.
-
-**Wait for user approval before proceeding.** Never present fix work as already done.
-
-### If no issues were found:
-
-Say: "Implementation complete, review passed."
-
-**Mark plan as executed (always do this before offering next steps):**
-
-Rename the plan file to prepend `EXECUTED-` so later agents do not re-execute it or mistake it for pending work:
+Mark the plan executed so later agents don't re-run it:
 
 ```bash
 PLAN_FILE=~/.agents/plans/<repo-name>/<plan-file>.md
-PLAN_DIR=$(dirname "$PLAN_FILE")
-PLAN_BASE=$(basename "$PLAN_FILE")
-
+PLAN_DIR=$(dirname "$PLAN_FILE"); PLAN_BASE=$(basename "$PLAN_FILE")
 case "$PLAN_BASE" in
   EXECUTED-*) ;;
   *) mv "$PLAN_FILE" "$PLAN_DIR/EXECUTED-$PLAN_BASE" ;;
 esac
 ```
 
-If the rename fails because the plan came from a non-standard location or no longer exists, skip silently. Do not block completion on bookkeeping. The goal is simply to leave a visible marker for the next agent whenever possible.
+If the rename fails because the plan came from a non-standard location, skip silently — bookkeeping
+never blocks completion.
 
-**Context file check (always run this before offering next steps):**
+Check whether the implementation surfaced anything `context/` doesn't capture: a convention that
+emerged, an architectural decision, a new trap a future agent would fall into, a new component,
+service, or dependency, or a business rule that became concrete during coding. If so, draft the
+proposed edits — which file, what changes, why — and wait for approval before running
+`/update-context-files`. Skip silently when the repo has no context files.
 
-Ask yourself: did this implementation introduce anything that isn't already captured in `context/`? Specifically:
-
-- A non-obvious pattern or convention that emerged during implementation
-- An architectural decision that was made (even a small one)
-- A new "what agents get wrong" trap — something that tripped up during this implementation or that a future agent would likely misunderstand
-- A new component, service, or external dependency
-- A business rule that became concrete during coding
-
-If yes to any of these, draft the proposed edits (which file, what's being added/changed, and why) and show them to the user. Wait for explicit approval before running `/update-context-files` to apply them. Include what was updated in the report once applied. If context files don't exist for this repo yet, skip silently (don't prompt to create them mid-execution).
-
-Then offer `close-task` for task status, final validation, and any explicit git/PR workflow. Do not commit, push, or mark external work done from `execute` unless the user explicitly asks in the current turn.
-
----
-
-## Red Flags
-
-- **Never** start implementing before loading and reading the full plan
-- **Never** skip the review step even if the implementation looks obviously correct
-- **Never** implement out-of-scope items "while you're at it"
-- **Never** leave a successfully implemented plan looking unexecuted when the plan file is writable
-- **Never** present fix plans as already done - offer first, implement after approval
-- **Never** let a subagent read the plan file - paste the full task text into their prompt
-- If a subagent returns BLOCKED and you can't resolve it, surface it to the user before continuing other tasks
-- **Never** stop at helper-level tests for a new endpoint, integration, migration, parser, or ordered/stateful workflow when a higher-layer verification is feasible
-- **Never** leave generated files, schema-derived types, or runtime docs stale after changing their source contract
-- **Never** call the implementation complete if a key contract in the plan was not explicitly re-verified after coding
+Finally, offer the follow-ups that apply: `cleanup` when the work removed, renamed, or moved
+behavior; `verify-ui` when UI behavior changed, run only with explicit approval in the current turn;
+and `close-task` for task status, final validation, and any git or PR workflow. Committing, pushing,
+and marking external work done belong to `close-task` and only when the user asks in the current turn.

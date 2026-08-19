@@ -10,180 +10,66 @@ description: >
 
 # Verify UI
 
-**Announce at start:** `Running UI verification...`
+Announce at start: `Running UI verification...`
 
-Use this skill to validate a UI implementation in the browser and return a solid findings report.
-Do not stop at "it renders" or "no obvious issues." Verify the actual user flow and inspect the
-browser signals that reveal broken implementations.
+Validate a UI implementation in a real browser and return a findings report. This is implementation
+verification, not a visual glance: "it renders" and "no obvious issues" are not verification.
 
-## Core Standard
-
-Treat this as implementation verification, not a casual visual glance.
-
-The job is to:
-- run or connect to the correct local app
-- open the relevant page in the in-app browser
-- exercise the real flow a user would take
-- inspect visible layout and interaction behavior
-- check console errors and failed network activity
-- report concrete findings, coverage, and gaps
-
-## Browser Dependency
-
-Use the best available browser control surface for local verification.
-
-Prefer `chrome-devtools-mcp:chrome-devtools` — invoke it via the Skill tool. It provides
-navigation, interaction, screenshot, console, and network inspection in one surface. If that skill
-is not available, use any other browser automation surface that can open the local app, exercise
-the flow, and inspect visible state. If no browser surface is available, report that verification
-is blocked instead of pretending the UI was checked.
+Use `chrome-devtools-mcp:chrome-devtools` via the Skill tool when available — it covers navigation,
+interaction, screenshots, console, and network in one surface. Any other browser automation surface
+works too. With no browser surface at all, report that verification is **blocked** rather than
+describing a UI you did not open.
 
 ## Workflow
 
-### 1. Establish the target
+**Establish the target.** Which app, which route or flow, and whether the user wants a broad smoke
+check or a specific scenario. Infer it from the changed files and repo context before asking.
 
-Identify:
-- which app to run
-- which route or flow to verify
-- whether the user wants a broad smoke check or a specific scenario
+**Start or connect to the dev server.** Find the run command in the repo — documented project
+commands, `package.json` scripts, app README or context docs — rather than guessing. Check whether
+the app is already running (`lsof -i :<port> | grep LISTEN`, or curl the port) and reuse a healthy
+server instead of spawning a duplicate. When starting one, run it in the background, capture the URL
+and port, and wait until it is actually reachable. Report a startup failure with its blocking error.
 
-If the request is vague, infer the most relevant target from the changed files, app structure, and
-repo context before asking questions.
+**Open the app and read the current state.** Confirm the page loaded, then note rendering failures,
+hydration errors, blank states, broken styling, or auth gates before touching anything. Form a
+hypothesis about the intended flow, then act on it — clicking around at random finds nothing.
 
-### 2. Start or connect to the dev server
+**Exercise the real flow.** Walk the user path relevant to the change: open the modal and check its
+content, focus behavior, and close actions; submit the form and check validation, loading, success,
+and failure states; navigate between pages and check preserved state, routing, and data refresh;
+resize when the layout is part of the task. Where the implementation clearly has meaningful edge
+states, go past the happy path into them.
 
-Find the correct local run command from the repository instead of guessing.
+**Inspect browser signals** during and after the flow: console errors and warnings that indicate
+broken behavior, failed or suspicious network requests, loading states that never resolve, layout
+breakage — overflow, clipping, overlap, misalignment, missing assets — and interaction regressions
+like dead buttons, double submits, focus traps, or stale UI. Console and network issues are real
+findings unless they are clearly unrelated noise; a rendered page does not excuse them.
 
-Prefer:
-- documented project commands
-- `package.json` scripts
-- app-specific README or context docs
+**Capture a screenshot** of the final state before writing the report. It is the artifact that proves
+verification happened, so always take it. If the server restarted mid-session, reload and re-exercise
+the flow first.
 
-Before starting a new server, check whether the relevant app is already running:
-
-```bash
-lsof -i :<port> | grep LISTEN
-# or
-curl -s -o /dev/null -w "%{http_code}" http://localhost:<port>
-```
-
-Reuse an existing healthy server instead of spawning duplicates.
-
-When you start a server:
-- launch it in the background
-- capture the local URL and port
-- wait until the app is actually reachable before opening the browser
-
-If the server fails to start, report the failure clearly and include the blocking error.
-
-### 3. Open the app and understand the current state
-
-Open the target URL in the in-app browser.
-
-Before interacting:
-- confirm the page loaded
-- inspect the visible state
-- note obvious rendering failures, hydration errors, blank states, broken styling, or auth gates
-
-Do not click randomly. Form a short hypothesis about the intended flow first.
-
-### 4. Exercise the flow
-
-Walk the actual user path relevant to the change.
-
-Examples:
-- open a modal and verify its content, focus behavior, and close actions
-- submit a form and verify validation, loading, success, and failure states
-- navigate between pages and verify preserved state, routing, and data refresh
-- test responsive behavior when the layout change is part of the task
-
-Do not stop at the happy path when the implementation clearly has meaningful edge states.
-
-### 5. Inspect browser signals
-
-During and after the flow, inspect:
-- console errors and warnings that indicate broken behavior
-- failed or suspicious network requests
-- visible loading states that never resolve
-- layout breakage, overflow, clipping, overlap, alignment issues, or missing assets
-- interaction regressions such as dead buttons, double submits, focus traps, or stale UI
-
-Treat console or network issues as real findings unless they are clearly unrelated noise.
-
-### 6. Capture a screenshot
-
-Before writing the report, take a screenshot of the final app state using the browser tool's
-screenshot capability. Attach it to the Evidence section. This is the primary artifact that proves
-verification actually happened — always capture it.
-
-If you had to restart the server at any point during the session, reload the page and re-exercise
-the flow before capturing the screenshot.
-
-## What Good Verification Looks Like
-
-A strong verification pass answers:
-- what was verified
-- how it was verified
-- what failed
-- how to reproduce each issue
-- how severe the issue is
-- what was not covered
-
-Good verification is specific. "Looks good" is not verification.
-
-## Findings Bar
-
-Flag issues such as:
-- console exceptions or repeated warnings tied to the change
-- failed API requests, bad payload handling, or incorrect loading/error states
-- broken navigation, stale data, or state loss across the flow
-- layout regressions on the affected viewport
-- mismatches between the intended UX and the implemented behavior
-- UI that technically renders but is visibly incomplete, misleading, or hard to use
-
-Also call out partial verification when:
-- the flow is blocked by missing credentials, feature flags, seed data, or backend failures
-- the app starts but the requested route cannot be reached
-- verification was limited to one viewport or one branch of the flow
-
-## Output Format
-
-Report findings like a review, not a stream of browser notes.
-
-Use this structure:
+## Output
 
 ### Verdict
-- `Pass`
-- `Pass with issues`
-- `Blocked`
-- `Fail`
+`Pass` · `Pass with issues` · `Blocked` · `Fail`
 
 ### Verified
-- the route, flow, or behavior checked
-- the environment used, including local URL when relevant
-- the major user actions performed
+The route, flow, or behavior checked; the environment and local URL; the major actions performed.
 
 ### Findings
-- severity
-- `file:line` when the cause is already clear from local code or logs
-- exact symptom
-- reproduction steps
-- likely cause when reasonably supported
+Severity, `file:line` when local code or logs already make the cause clear, the exact symptom,
+reproduction steps, and the likely cause when reasonably supported.
 
 ### Not Covered
-- any flows, viewports, states, or dependencies that were not verified
+Flows, viewports, states, or dependencies left unverified — including partial runs blocked by missing
+credentials, feature flags, seed data, or backend failures, a route that could not be reached, or
+coverage limited to one viewport or one branch of the flow.
 
 ### Evidence
-- screenshot of the final app state (always include)
-- relevant console errors
-- failed requests
+The final-state screenshot, relevant console errors, and failed requests.
 
-Prefer a few high-signal findings over a noisy diary of every click.
-
-## Review Discipline
-
-- Do not confuse "no crash" with "correct implementation"
-- Do not ignore console or network errors just because the UI still rendered
-- Do not declare success without naming what was actually exercised
-- Do not over-report harmless noise when it is clearly unrelated to the changed flow
-- Do not stop after one success path if the feature obviously has important failure or empty states
+Prefer a few high-signal findings over a diary of every click, and name what was actually exercised
+rather than declaring success.
