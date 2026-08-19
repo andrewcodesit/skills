@@ -12,7 +12,7 @@ asking the user a single clarifying question. Self-containment is the whole bar.
 
 ## 1. Gather context
 
-Pull all of it before writing anything — the doc is only as good as this step:
+Pull all of it before writing anything - the doc is only as good as this step:
 
 - Repo name from the working directory or `git remote get-url origin`
 - Active branch (`git branch --show-current`)
@@ -34,7 +34,7 @@ name.
 **Repo:** <repo-name>
 **Branch:** <branch-name or "no git">
 **Date:** <YYYY-MM-DD>
-**Session summary:** <1–2 sentences — what we were doing and why>
+**Session summary:** <1–2 sentences - what we were doing and why>
 
 ## Goal
 What the incoming agent should achieve, with acceptance criteria when known.
@@ -52,17 +52,17 @@ Non-obvious choices and the reasoning behind them. This section is what stops th
 re-litigating settled questions, so it always has content.
 
 ## Next Steps
-Ordered and specific — name the file, the function, and the change, so step 1 needs no clarification.
+Ordered and specific - name the file, the function, and the change, so step 1 needs no clarification.
 
 ## Open Questions
 Anything unresolved or left for the user to decide. "None." if there are none.
 
 ## Key Files
-- `path/to/file.ts` — what it does and why it matters here
+- `path/to/file.ts` - what it does and why it matters here
 
 ## Constraints & Gotchas
 What the incoming agent must avoid, edge cases it must handle, and the non-obvious constraints
-discovered this session — especially any mistake you already avoided that a reasonable agent would
+discovered this session - especially any mistake you already avoided that a reasonable agent would
 walk straight into.
 
 ## Environment Notes
@@ -78,4 +78,4 @@ user can spot-check, and close with:
 
 > Handoff doc saved. Pass `~/.agents/handoffs/<filename>` to the next agent to continue.
 
-The user can read the rest themselves — keep the other sections out of chat.
+The user can read the rest themselves - keep the other sections out of chat.

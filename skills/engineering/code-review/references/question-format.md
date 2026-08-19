@@ -9,7 +9,7 @@ is the product.
 ## Rules
 
 - One question per message. Wait for the answer before asking the next one.
-- Reassess after every answer — an answer often removes or reshapes later questions.
+- Reassess after every answer - an answer often removes or reshapes later questions.
 - Ask only about real unknowns. If codebase inspection settles it, say so and skip.
 - 2–4 options. More than that is usually two questions. Resolution Gates are the exception.
 - The recommended option is always `A.`, marked `A. (Recommended)` immediately after the letter.
@@ -22,11 +22,11 @@ is the product.
 ## Template
 
 ```
-Q<n> of <m> — <the question>
+Q<n> of <m> - <the question>
 <one sentence: what is unknown, and why it matters here>
 
 A. (Recommended) <option label>
-   <short reason — quality and operational consequences>
+   <short reason - quality and operational consequences>
 B. <option label>
    <short reason>
 C. <option label>
@@ -43,7 +43,7 @@ Reply with the letter.
 ## Example
 
 ```
-Q2 of 4 — How should attribute schemas be stored?
+Q2 of 4 - How should attribute schemas be stored?
 Unknown: whether admins need to change schemas without a deploy.
 
 A. (Recommended) DB table per category
@@ -63,7 +63,7 @@ Reply with the letter.
 ## Resolution Gates
 
 When a skill has findings and needs to know how to act on them, it offers a resolution gate: the
-same format, with one carve-out — a gate may exceed 4 options when each extra option is a genuinely
+same format, with one carve-out - a gate may exceed 4 options when each extra option is a genuinely
 distinct disposition. Show only the dispositions that apply to this run.
 
 Standard dispositions:
@@ -72,7 +72,7 @@ Standard dispositions:
 2. Grill on every finding
 3. Hand the selected findings to the planning skill as its input spec, then execute that plan
 4. Apply best judgment on everything, then summarize
-5. Do nothing — leave the report as-is
+5. Do nothing - leave the report as-is
 
 Compute the recommendation from the findings:
 
@@ -86,7 +86,7 @@ records that path as its `**Source:**`. The execution skill takes a plan file, n
 
 ## Recording Answers
 
-Append every answered question to a `## Decisions` section in the artifact the skill produces — the
+Append every answered question to a `## Decisions` section in the artifact the skill produces - the
 plan file, the review file. One line each: the question, the option chosen, and the user's own
 reason if they gave one. Chat-only is lost at context summarization, which is exactly when the next
 agent starts re-asking what the user already answered.
