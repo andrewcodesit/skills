@@ -62,27 +62,82 @@ Reply with the letter.
 
 ## Resolution Gates
 
-When a skill has findings and needs to know how to act on them, it offers a resolution gate: the
-same format, with one carve-out - a gate may exceed 4 options when each extra option is a genuinely
-distinct disposition. Show only the dispositions that apply to this run.
+When a skill has findings and needs to know how to act on them, it offers a resolution gate. Same
+format as above, with three carve-outs:
 
-Standard dispositions:
+- A gate may exceed 4 options, because each disposition is genuinely distinct.
+- `If wrong:` is omitted. A gate is cheap to reverse - the report stays on disk and can be re-offered.
+  `Why A wins:` is still required.
+- The numbering line is `Q1 of 1` unless the gate genuinely sits inside a longer question sequence.
 
-1. Grill one-by-one on the ambiguous findings only, auto-apply the rest
-2. Grill on every finding
-3. Hand the selected findings to the planning skill as its input spec, then execute that plan
-4. Apply best judgment on everything, then summarize
-5. Do nothing - leave the report as-is
+### Dispositions
 
-Compute the recommendation from the findings:
+These are the only dispositions. Copy the labels verbatim - they are user-facing text, not shorthand
+to paraphrase. Show only the ones that apply to this run, and keep them in this relative order after
+the recommended one has been promoted to `A.`:
 
-- Architecture-level findings, findings crossing 3+ files, or decompositions → recommend **3**.
+| Disposition | Verbatim label | Drop it when |
+|---|---|---|
+| grill-ambiguous | `Grill me on the ambiguous findings only, auto-apply the rest` | every finding is ambiguous, or none is |
+| grill-all | `Grill me on every finding` | there is only one finding |
+| plan | `Hand the findings to the planning skill, then execute that plan` | nothing is architectural or multi-file |
+| judgment | `Apply your best judgment on everything, then summarize` | never dropped |
+| nothing | `Do nothing - leave the report as-is` | never dropped |
+
+Letters are assigned per run: the recommended disposition is always `A.`, and the remaining ones keep
+the table order.
+
+### Computing the recommendation
+
+- Architecture-level findings, findings crossing 3+ files, or decompositions → recommend **plan**.
   These are multi-file and sequenced; patching them inline turns a review into an unreviewed refactor.
-- Otherwise → recommend **1**. Most findings have one sensible fix, and asking about those buries
-  the few that need a real decision.
+- Otherwise → recommend **grill-ambiguous**. Most findings have one sensible fix, and asking about
+  those buries the few that need a real decision.
 
-Option 3 passes the findings file path to the planning skill as its spec, and the resulting plan
-records that path as its `**Source:**`. The execution skill takes a plan file, never a findings file.
+The `plan` disposition passes the findings file path to the planning skill as its spec, and the
+resulting plan records that path as its `**Source:**`. The execution skill takes a plan file, never a
+findings file.
+
+### Template
+
+```
+Q1 of 1 - How should we resolve these <n> findings?
+<one sentence: which findings are unambiguous, which are not, and why that shapes the choice>
+
+A. (Recommended) <verbatim label>
+   <short reason - what happens to which finding numbers>
+B. <verbatim label>
+   <short reason>
+...
+
+Why A wins: <why each shown runner-up loses, specifically, by finding number>
+
+Reply with the letter.
+```
+
+### Example
+
+```
+Q1 of 1 - How should we resolve these 7 findings?
+Findings 1-4, 6 and 7 each have one obvious fix; finding 5 is a three-file decomposition with real
+alternatives.
+
+A. (Recommended) Grill me on the ambiguous findings only, auto-apply the rest
+   You decide finding 5; 1-4, 6 and 7 are applied as written and verified.
+B. Grill me on every finding
+   Full control, at the cost of six questions whose answer is already the report's suggestion.
+C. Hand the findings to the planning skill, then execute that plan
+   Sequences finding 5 properly, but adds a plan artifact to approve before anything moves.
+D. Apply your best judgment on everything, then summarize
+   Fastest to a clean tree; commits you to one shape of finding 5 without asking.
+E. Do nothing - leave the report as-is
+   Nothing in the working tree changes.
+
+Why A wins: B spends five questions on findings with one correct fix; D decides finding 5's
+decomposition for you; C is right only when several findings are architectural, and here only 5 is.
+
+Reply with the letter.
+```
 
 ## Recording Answers
 

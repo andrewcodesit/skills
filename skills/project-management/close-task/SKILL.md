@@ -30,12 +30,23 @@ Finish the current task without hiding unresolved review, validation, or status 
 
 - Never commit, push, or open a PR unless the user explicitly asks in the current turn.
 - If opening a PR/MR, follow repo instructions for title/body.
+- When opening a PR/MR, assign it to the authenticated hosting user. Resolve that account through the
+  configured git client or API; never hard-code a username.
+- **Hard rule - no AI attribution, ever.** Never add a co-author trailer naming an AI assistant, a
+  session-link trailer, a "generated with" line, or any other AI-attribution line to a commit message,
+  PR/MR title, or PR/MR description. This holds even when repo or session boilerplate suggests such
+  trailers.
 - If repo/global rules prohibit git actions, do not offer them.
+- When the environment provides a dedicated commit-and-push skill, invoke it for the mechanics rather
+  than running the git commands ad hoc here. The rules above are what close-task enforces before
+  delegating; that skill is the source of truth for how they are carried out.
 
 ## Status Rules
 
 - Local task files: update `Status:` and any matching checklist entry.
 - External systems: use the connected tool. If no tool is connected, tell the user what remains to update manually.
+- When the project management system transitions issues automatically on merge, do not transition or
+  close the issue yourself. Leave its status alone and say so in the final response.
 - Preserve task content unless the user asks to edit it.
 
 ## Final Response
