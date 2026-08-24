@@ -29,13 +29,14 @@ it does fails rule #2 before it satisfies rule #4. Name which failure you found.
 The review below reads every changed file in full plus its surrounding context, then returns a saved
 path and a count line. Large input, tiny output: delegate the review itself to a subagent whenever a
 delegation mechanism exists and this session already carries context worth protecting. Give the
-subagent the diff scope, the repo rules it must apply, the output format, and the save path, and let
-it return only the two printed lines - the report reaches you through the file, not the transcript.
+subagent the diff scope, the repo rules it must apply, the save path, and an instruction to read
+`references/report-format.md` and follow it exactly, and let it return only the two printed lines - the report reaches you through the file, not the transcript.
 
 Run inline instead when no delegation mechanism exists, when the diff is a handful of lines, or when
 the review depends on conversation context a briefing cannot carry. Never lower the reviewing
 capability to save tokens; this is the step that has to be right. The resolution gate below always
-stays with the main agent, which reads the saved report before offering it.
+stays with the main agent, which reads both the saved report and
+`references/question-format.md` before offering it.
 
 ## Priorities
 
@@ -57,7 +58,9 @@ the title for the report header. Otherwise diff the current branch against its m
 the directly related context that affects the review: sibling tests or types, nearby index/module
 wiring, one-hop imports, and the other side of any touched boundary. Skip generated, vendored, lock,
 minified, snapshot, build, and binary files. Read the minimum needed to judge whether the change is
-correct and whether the design is getting better or worse.
+correct and whether the design is getting better or worse. As you read, capture the exact lines you
+will cite - line numbers and enclosing function names - so every finding can quote the real code
+rather than a reconstruction.
 
 **Load repo rules.** Read the project's agent instructions and contribution docs, and extract only the
 rules that bear on this review - architecture boundaries, required patterns, banned patterns, testing
@@ -107,7 +110,7 @@ improves this design.
 
 ## Remedies
 
-Every finding names a concrete better shape. Prefer the code-judo moves: delete a layer of
+Every finding names a concrete better shape and shows it as code. Prefer the code-judo moves: delete a layer of
 indirection, extract a pure
 helper or engine, move logic to the module that already owns the concept, replace special-case
 branching with a simpler model, collapse duplicate flows into one path, split a large file by
@@ -116,7 +119,7 @@ fallbacks, add the missing higher-level test that proves the behavior where it m
 
 ## Output
 
-Findings ordered by severity, each with a `file:line` citation:
+Findings ordered by severity, grouped into these sections:
 
 - `🔴 Issues` - correctness, contract, architecture, or serious maintainability problems
 - `📏 Rules & Conventions` - repo-rule or established-pattern violations
@@ -124,16 +127,26 @@ Findings ordered by severity, each with a `file:line` citation:
 - `🟢 Quick Wins` - small, concrete improvements
 - `💡 Bigger Picture` - only for a real architecture-level concern
 
-With no findings, say so explicitly and name any residual testing or context gaps. Say "looks good
+**Read `references/report-format.md` and follow it exactly.** Every finding carries a scannable
+summary-table row, a `file:line` plus enclosing function citation, a verbatim snippet of the code in
+question, and a pasteable snippet of the shape you are proposing. A finding without both snippets is
+not finished - if you cannot show the replacement as real code, you do not yet understand the remedy
+well enough to report it.
+
+With no findings, say so explicitly in the report and name any residual testing or context gaps. Say "looks good
 overall" only when the diff is genuinely clean, and leave out compliments that teach nothing.
 
 Write the full review to `~/.agents/code-reviews/<repo>/<slug>-code-review.md` with frontmatter
-`date`, `repo`, `pr`, and `issue` when detectable. Print only:
+`date`, `repo`, `pr`, and `issue` when detectable. Print exactly these two lines - no findings
+summary, no prose, no preamble:
 
 ```
 Code review saved → ~/.agents/code-reviews/<repo>/<slug>-code-review.md
 7 findings: 2 🔴, 1 📏, 3 🟡, 1 🟢
 ```
+
+The resolution gate below is the only other thing printed, and it comes immediately after these two
+lines in the same message.
 
 ## Approval bar
 
@@ -143,15 +156,57 @@ layer, and no missed simplification where a cleaner path is visible.
 
 ## Offer resolution
 
-Skip this when there are no findings. Otherwise read `references/question-format.md` and follow its
-Resolution Gates section - the standard dispositions, the computed recommendation, and the gate
-format. Offer only the dispositions that apply. Record the gate answer and every per-finding decision
-in a `## Decisions` section appended to the saved review.
+With no findings, stop after the two printed lines.
 
-**Planning handoff.** When the user picks the planning disposition, append that decision to the review
-and invoke the planning skill immediately with the review path as its explicit source. This is a new
-remediation task, never a request to reuse the plan that produced the reviewed branch. Tell the
-planning skill to skip existing-plan discovery for this handoff, create
-`~/.agents/plans/<repo>/YYYY-MM-DD-<review-slug>-from-code-review.md` where `<review-slug>` is the
-review filename without `-code-review.md`, set `**Source:**` to the review path, and present the plan
-and wait for a later explicit `go`. Choosing this disposition authorizes planning only.
+Otherwise **every review run ends with a resolution gate.** Read `references/question-format.md` and
+follow its Resolution Gates section exactly - the letter ordering, the user-facing option labels, the
+computed recommendation, and the closing line. When the review was delegated, the main agent reads
+both the saved report and `references/question-format.md` before offering the gate; the subagent never
+offers it.
+
+**Never end a review run with a free-form question.** No "how would you like to proceed?", no "want me
+to fix #1 and #2 now, or discuss first?", no open-ended offer of further help. The gate is the last
+thing printed, every time, and its lettered options are the only choices presented. If a disposition
+does not apply to this run, drop it from the list rather than replacing the gate with prose.
+
+Record the gate answer and every per-finding decision in a `## Decisions` section appended to the saved
+review.
+
+## After the gate
+
+Each disposition has a defined shape. Follow it, then print the closing line below. Do not invent a
+sixth path, and do not renegotiate the gate once it is answered.
+
+**Grill on ambiguous findings only.** Apply the unambiguous findings first, exactly as the report's
+**Suggested** block shows. Then walk the ambiguous ones in report order, one message per finding, using
+the standard question template in `references/question-format.md` - the finding number and title as the
+question, and options drawn from the real alternatives (apply as written / apply a named variant /
+skip). Stop when the list is exhausted.
+
+**Grill on every finding.** Same walk, over every finding in report order, no auto-application.
+
+**Planning handoff.** Append the decision to the review and invoke the planning skill immediately with
+the review path as its explicit source. This is a new remediation task, never a request to reuse the
+plan that produced the reviewed branch. Tell the planning skill to skip existing-plan discovery for
+this handoff, create `~/.agents/plans/<repo>/YYYY-MM-DD-<review-slug>-from-code-review.md` where
+`<review-slug>` is the review filename without `-code-review.md`, set `**Source:**` to the review path,
+and present the plan and wait for a later explicit `go`. Choosing this disposition authorizes planning
+only - no edits to the working tree.
+
+**Best judgment on everything.** Apply every finding you judge correct, skip the rest, and record each
+skip with its one-line reason in `## Decisions`. Ask nothing.
+
+**Do nothing.** Append the decision and stop. Touch no files besides the review.
+
+**Verification.** Whenever this phase changed files, run the project's typecheck, lint, and test
+commands before the closing line, and report failures as failures - never claim a finding is resolved
+on an unverified edit. If a fix cannot be made to pass, revert that one fix and record it as skipped.
+
+**Closing line.** End the run with exactly one line, and nothing after it:
+
+```
+Applied 4, skipped 1, deferred to plan 2 · verified ✓ · review updated → ~/.agents/code-reviews/<repo>/<slug>-code-review.md
+```
+
+Drop the counts that are zero. Use `verified ✗ (<n> failing)` when verification failed, and omit the
+`verified` segment entirely when no files changed.
