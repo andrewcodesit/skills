@@ -1,6 +1,6 @@
 ---
 name: execute
-description: Use when the user approves a plan and says "go", "go for it", "execute", "implement it", or similar. Runs the implementation, then reviews against spec and repo standards.
+description: Use when the user approves a plan and says "go", "go for it", "execute", "implement it", or similar. Runs the implementation, then verifies it against the plan, repo standards, and the contracts the plan named.
 ---
 
 # Execute Plan
@@ -131,11 +131,21 @@ Either way: when a task changes generated artifacts, runtime config, migrations,
 cross-layer contracts, complete the codegen, type refresh, and dependent-file updates inside the same
 execution flow rather than leaving them as implied follow-up.
 
-## 4. Review the implementation
+## 4. Verify against the plan
 
-Three passes, all of them, even when the implementation looks obviously correct.
+This step answers one question: did you build what the plan said, wired the way it said? It is not a
+code review, and it must not grow into one. Design quality belongs to a separate pass that reads the
+finished diff with none of this session's context - and that independence is the whole reason it
+catches what this step cannot. Reviewing your own work here, minutes after writing it and with the
+plan's reasoning still loaded, mostly reproduces the assumptions you already made.
 
-The review runs on the code, never on the subagents' reports. Read every file a delegated task
+That separate pass is not automatic. Some repositories run an automated reviewer on the merge/pull
+request; most do not, and there it happens only because someone runs the `code-review` skill. So the
+report below offers that review rather than assuming it - the user decides whether to take it, but
+they get to make that call knowingly instead of by default. Never run it unasked, and never write as
+though a review is coming when nothing has been set up to produce one.
+
+The verification runs on the code, never on the subagents' reports. Read every file a delegated task
 changed before judging it - a `DONE` summary is the one thing in this skill that cannot be trusted,
 and cheaper tiers concentrate their mistakes exactly where the plan was thinnest. Pay extra attention
 to the seams between tasks: two subagents that each satisfied their own briefing pack can still
@@ -145,40 +155,26 @@ disagree about the shape that crosses between them.
 specified, out-of-scope items stayed unimplemented, and nothing extra was added.
 
 **Repo standards.** Read `AGENTS.md`, then `CLAUDE.md` if it carries its own rules rather than a
-pointer, then `~/.claude/CLAUDE.md`; repo-specific rules override global ones. Check the standards
-you find - typically naming conventions, file placement, absence of AI or assistant attribution in
-code and comments, consistent reuse of shared helpers and schemas instead of inlined copies, and any
-repo-specific pattern the context map calls out.
+pointer, then any global agent instruction file; repo-specific rules override global ones. Check the
+standards you find - typically naming conventions, file placement, absence of AI or assistant
+attribution in code and comments, consistent reuse of shared helpers and schemas instead of inlined
+copies, and any repo-specific pattern the context map calls out.
 
-**Adversarial correctness.** Try to prove the implementation wrong. Check the plan's contracts and
-failure modes against the real code:
+**The contracts the plan named.** For each contract and failure mode the plan called out, confirm the
+real code honors it. This list is bounded by the plan: you are checking that its own risk register
+came true, not opening a general hunt for defects. Where the plan named a boundary, verify it at that
+boundary - green lint, build, and tests do not establish that a contract survived, and a new
+endpoint, integration, migration, parser, or stateful workflow needs more than a helper-level test.
 
-- **Cross-layer agreement** - do types, runtime validation, persisted schema, generated artifacts,
-  and docs all agree?
-- **Sibling consistency** - do parallel implementations of one pattern share guards, abstractions,
-  and boundary behavior?
-- **Ordering and state** - are pagination, sorting, deduplication, retries, cursors, idempotency, and
-  cache invalidation stable at the boundaries?
-- **Config drift** - does every configurable value have a real consumer, and is anything falsely
-  presented as configurable?
-- **Negative paths** - do malformed input, failed integrations, permission failures, empty states, and
-  partial results fail in a controlled way?
-- **Minimal valid input** - for write paths accepting sparse input, what happens with only the minimum
-  allowed fields?
-- **Validation depth** - do tests exercise the real boundary, or only narrow helpers while route and
-  integration behavior stays unproven?
-
-Green lint, build, and tests do not settle any of the above when the change touched ordered behavior,
-schema contracts, or multi-layer integration. Reach for the higher-layer verification whenever it is
-feasible: a new endpoint, integration, migration, parser, or stateful workflow needs more than a
-helper-level test.
+Anything you notice outside that scope - a design smell, a structural concern, a simplification worth
+making - is recorded as a note in the report and left for the review pass. Do not act on it here.
 
 ## 5. Report
 
-**When the review found issues:**
+**When the verification found gaps:**
 
 ```
-## Review Findings
+## Verification Findings
 
 ### Spec gaps
 - [ ] <specific issue and where>
@@ -186,17 +182,23 @@ helper-level test.
 ### Standards violations
 - [ ] <specific issue and where>
 
-### Behavioral risks
-- [ ] <silent bug, cross-layer drift, or boundary issue and where>
+### Broken contracts
+- [ ] <a contract or failure mode the plan named that the code does not honor, and where>
+
+### Notes for review
+- [ ] <observation outside this step's scope, left for the review pass>
 ```
 
-Then read `references/question-format.md` and offer a resolution gate per its Resolution Gates
-section. These findings come from adversarial review of just-written code, so they skew structural:
-when a finding is architecture-level, crosses 3+ files, or is a decomposition, route it back through
-the planning skill rather than patching inline. Offer only the dispositions that apply, and wait for
+Findings in the first three sections are gaps against the plan and need resolving. Read
+`references/question-format.md` and offer a resolution gate per its Resolution Gates section - when a
+finding is architecture-level, crosses 3+ files, or is a decomposition, route it back through the
+planning skill rather than patching inline. Offer only the dispositions that apply, and wait for
 approval - fix work is offered, never presented as already done.
 
-**When it found none:** say "Implementation complete, review passed."
+`Notes for review` is not part of the gate. It carries forward to the review pass untouched; drop the
+section when there is nothing to note.
+
+**When it found none:** say "Implementation complete, verified against the plan."
 
 **Then, always:**
 
@@ -220,7 +222,21 @@ service, or dependency, or a business rule that became concrete during coding. I
 proposed edits - which file, what changes, why - and wait for approval before running
 `/update-context-files`. Skip silently when the repo has no context files.
 
-Finally, offer the follow-ups that apply: `cleanup` when the work removed, renamed, or moved
-behavior; `verify-ui` when UI behavior changed, run only with explicit approval in the current turn;
-and `close-task` for task status, final validation, and any git or PR workflow. Committing, pushing,
-and marking external work done belong to `close-task` and only when the user asks in the current turn.
+Finally, offer the follow-ups that apply:
+
+- **`code-review`** - the independent pass step 4 deliberately left undone. Offer it whenever the repo
+  has no automated reviewer on merge/pull requests, since then this is the only review the change will
+  get. When the repo does run one, say so and let the user skip this in favour of it rather than
+  paying for two passes over the same diff. Either way it is an offer, not a step.
+- **Publish the branch as a draft.** When the work is committable, offer the environment's publish
+  skill - `git-publish` or whatever it exposes - to commit, push, and open a *draft* merge or pull
+  request. Draft is the point, not a formality: the branch becomes visible and reviewable while you
+  keep adding to it, and a repository whose automated reviewer holds for drafts will not spend a
+  review on an unfinished branch.
+- `cleanup` when the work removed, renamed, or moved behavior.
+- `verify-ui` when UI behavior changed, run only with explicit approval in the current turn.
+- `close-task` when the branch is genuinely finished - it runs final validation, marks the request
+  ready for review, and handles task status.
+
+Offer, never act: this skill does not touch the remote, does not start a review on its own, and
+committing, pushing, and marking external work done happen only when the user asks in the current turn.

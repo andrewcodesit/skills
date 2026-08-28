@@ -34,13 +34,15 @@ Every new session starts from zero unless you've documented the repo for the age
 
 Agents reviewing agent-written code tend to either approve everything or flood you with nitpicks. **[`code-review`](./skills/engineering/code-review/SKILL.md)** is tuned to focus on real bugs and real risks, not style noise.
 
+The other half of the problem is *when* review happens. An agent that reviews its own work seconds after writing it, with the plan still in context, mostly re-confirms its own assumptions - so `execute` verifies the implementation against the plan and stops there, and the real review is a separate pass over the finished diff. Whether that's `code-review` or an automated reviewer on the merge request is up to your repo; either way it's offered, never forced.
+
 ### #4: Cruft accumulates and nobody notices
 
 Dead code, leftover debug logs, and unused imports pile up quietly across sessions. **[`cleanup`](./skills/engineering/cleanup/SKILL.md)** scans for it, cites `file:line`, and fixes it category by category with your confirmation - not a silent mass rewrite.
 
 ### #5: Project work needs a trackable path
 
-Starting from a vague idea is where agents lose the thread fastest. **[`define-spec`](./skills/project-management/define-spec/SKILL.md)** turns the idea into a concise spec, **[`breakdown-tasks`](./skills/project-management/breakdown-tasks/SKILL.md)** turns that spec into local or external tasks with epics when the work is large, and **[`close-task`](./skills/project-management/close-task/SKILL.md)** handles the finish line: review status, validation, optional git actions after approval, and task completion.
+Starting from a vague idea is where agents lose the thread fastest. **[`define-spec`](./skills/project-management/define-spec/SKILL.md)** turns the idea into a concise spec, **[`breakdown-tasks`](./skills/project-management/breakdown-tasks/SKILL.md)** turns that spec into local or external tasks with epics when the work is large, **[`git-publish`](./skills/engineering/git-publish/SKILL.md)** puts the branch up as a draft merge/pull request once there's something worth showing, and **[`close-task`](./skills/project-management/close-task/SKILL.md)** handles the finish line: final validation, marking that request ready for review, routing whatever the review turns up, and task completion.
 
 ## Reference
 
@@ -52,14 +54,15 @@ Starting from a vague idea is where agents lose the thread fastest. **[`define-s
 
 - **[cleanup](./skills/engineering/cleanup/SKILL.md)** - Scans the repo for dead code, debug artifacts, and other cruft, then fixes it category by category with confirmation.
 - **[code-review](./skills/engineering/code-review/SKILL.md)** - Deep code review focused on structural issues, behavioral risks, and missing coverage.
-- **[execute](./skills/engineering/execute/SKILL.md)** - Runs an approved plan, then reviews the implementation against spec and repo standards.
+- **[execute](./skills/engineering/execute/SKILL.md)** - Runs an approved plan, then verifies the implementation against the plan, repo standards, and the contracts the plan named.
+- **[git-publish](./skills/engineering/git-publish/SKILL.md)** - Commits the current branch, pushes it, and opens a draft merge/pull request on GitHub, GitLab, or Azure DevOps.
 - **[verify-ui](./skills/engineering/verify-ui/SKILL.md)** - Verifies local UI changes in a running app, including the browser flow, layout, and visible regressions.
 - **[verify-ts](./skills/engineering/verify-ts/SKILL.md)** - TypeScript strictness audit enforcing no-any, unknown at boundaries, discriminated unions, branded types, exhaustiveness checks, and runtime validation.
 
 ### Project Management
 
 - **[breakdown-tasks](./skills/project-management/breakdown-tasks/SKILL.md)** - Breaks specs or project goals into local or external tasks, with epics for larger work.
-- **[close-task](./skills/project-management/close-task/SKILL.md)** - Finishes a task by checking review/validation status, optionally handling git actions after approval, and marking the task done.
+- **[close-task](./skills/project-management/close-task/SKILL.md)** - Finishes a task by running final validation, marking the merge/pull request ready for review, routing the resulting review findings, and marking the task done.
 - **[define-spec](./skills/project-management/define-spec/SKILL.md)** - Turns a project idea, feature request, bug, or vague goal into a concise implementation-ready spec.
 - **[plan](./skills/project-management/plan/SKILL.md)** - Writes an implementation plan for a feature, task, or spec.
 - **[plan-review](./skills/project-management/plan-review/SKILL.md)** - Reviews an implementation plan and critiques it before execution.
