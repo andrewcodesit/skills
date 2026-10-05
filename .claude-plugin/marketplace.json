@@ -1,0 +1,15 @@
+{
+  "name": "andrewcodesit",
+  "description": "Agent skills and subagents for day-to-day agentic engineering",
+  "owner": {
+    "name": "andrewcodesit",
+    "url": "https://github.com/andrewcodesit"
+  },
+  "plugins": [
+    {
+      "name": "skills",
+      "source": "./",
+      "description": "Skills for planning, executing, reviewing, and shipping engineering work, plus the subagents they delegate to"
+    }
+  ]
+}

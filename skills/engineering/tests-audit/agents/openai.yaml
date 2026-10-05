@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tests Audit"
+  short_description: "Audit and right-size automated tests"
+  default_prompt: "Use $tests-audit to assess this project’s test suite and propose a leaner, risk-focused testing strategy."

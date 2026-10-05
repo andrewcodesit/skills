@@ -1,0 +1,15 @@
+{
+  "name": "skills",
+  "displayName": "Agentic engineering skills",
+  "version": "2.0.0",
+  "description": "Skills for planning, executing, reviewing, and shipping engineering work, plus the subagents they delegate to",
+  "author": {
+    "name": "andrewcodesit",
+    "url": "https://github.com/andrewcodesit"
+  },
+  "homepage": "https://github.com/andrewcodesit/skills",
+  "repository": "https://github.com/andrewcodesit/skills",
+  "license": "MIT",
+  "keywords": ["planning", "code-review", "subagents", "context", "git"],
+  "skills": ["./skills/context/", "./skills/engineering/", "./skills/project-management/"]
+}

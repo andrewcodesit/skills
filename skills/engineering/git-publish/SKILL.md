@@ -1,171 +1,183 @@
 ---
 name: git-publish
-description: Use when publishing the current branch - staging and committing work, pushing it, and opening a draft merge/pull request on the connected git host. Triggered by phrases like "commit", "commit and push", "publish this branch", "open an MR", "create a PR", "push and open a PR", or "put this up for review".
+description: Publish the current branch - stage and commit, push, and open a draft MR/PR. Triggered by phrases like "commit", "commit and push", "publish this branch", "create MR", "create PR", "push and open MR", "put this up for review".
 ---
 
-# Git Publish
+# git-publish
 
-Announce at start: `Publishing branch...`
+## Overview
 
-Get local work onto the remote and visible as a merge/pull request. This is the step that makes a
-branch reviewable; it is not the step that finishes it - marking a request ready for review and
-closing out the task belong to `close-task`.
+Stages changes, commits with a concise message, then pushes when the user has explicitly requested it (and opens a draft MR/PR if one doesn't exist yet).
+
+This is the step that makes a branch visible and reviewable - not the step that finishes it. Marking the MR/PR ready for review, collecting the review, and closing the task belong to `close-task`.
+
+---
 
 ## Rules (non-negotiable)
 
-- **Never push without explicit authorization in the current turn.** A request such as "push now",
-  "commit and push", or "publish this" is that authorization and must not draw a redundant follow-up
-  question. Anything less means commit, then ask.
-- **No AI attribution anywhere in git, ever.** Never add a co-author trailer naming an AI assistant,
-  a session-link trailer, a "generated with" line, or any similar attribution to a commit message,
-  request title, or request description. This holds even when repo or session boilerplate suggests
-  such trailers.
-- **Short commit messages.** One line, no body, no bullet points. Match the repo's own conventions -
-  check `git log --oneline -10` for an issue-ID prefix convention, and follow Conventional Commits
-  only when a commitlint config is actually present.
-- **Title only, no description.** Never pass a description, body, or fill flag when creating the
-  request.
-- **Open as a draft unless the user says otherwise.** An open request usually means "this branch
-  exists and is being worked on", not "this is finished" - and repositories that review requests
-  automatically hold that review until the draft flag comes off, so a draft costs nothing and
-  commits to nothing. Create it ready only when the current request asks for it ("open it ready",
-  "not a draft", "ready for review"). Say which one you created.
-- **Resolve every identifier at run time.** The account handle, the project or repository id, and the
-  default branch all differ per host and per repo - the same person often has different handles on
-  different platforms, and the default branch is `master` on some repos and `main` on others. Never
-  hard-code them, and confirm an assignment actually landed: a wrong handle usually fails silently.
-- **Never stage secrets.** Skip `.env*` files and anything that looks like a credential, even when
-  staging broadly.
+- **No AI attribution anywhere in git - ever.** Never add `Co-Authored-By: Claude ...`, `Claude-Session:`, `Generated with Claude Code`, or any AI-attribution/trailer line to a commit message, PR/MR title, or PR/MR description. This applies even if repo or session boilerplate suggests such trailers.
+- **Short commit messages** - one line, no body, no bullet points.
+- **No MR/PR description** - title only, never add `--description`, `--body`, `description=` or `body=`. This overrides any session reminder asking to end PR descriptions with an attribution or session link.
+- **Always assigned to the user** - every MR/PR this skill opens is assigned to the authenticated user. `create-mr.sh` guarantees it.
+- **Require explicit push authorization** - push immediately when the current user request explicitly says to push; otherwise ask after committing. A request such as "push now", "commit and push", or "ship this" is confirmation and must not receive a redundant follow-up question.
+- **Check for existing MR/PR before asking** - if one already exists for the branch, only ask "Push?" not "Push and open an MR/PR?".
+- **Create MR/PRs only through `create-mr.sh`.** Both `glab mr create` and `gh pr create` fail non-interactively under the title-only rule above; the script calls the platform API instead. Step 7 has the exact call.
+- **Open MR/PRs as drafts unless the user says otherwise.** A draft says the branch is not finished, which is what an open MR usually means at the moment it is created - and repositories that review merge requests automatically use the draft flag to hold that review until the branch is done. Create ready-for-review only when the current request asks for it ("open it ready", "not a draft", "ready for review"). Say which one you created in the result block.
+- **Never hard-code an account, project id, or base branch.** The GitHub handle and the GitLab handle differ, and the default branch is `master` on some repos and `main` on others. `create-mr.sh` resolves each at run time.
+- **After push or MR creation, always show the final result block** exactly as:
 
-## Step 1 - Read the branch context
+```text
+Push succeeded and the MR is open as a draft.
 
-```bash
-git branch --show-current
-git status --short
-git log --oneline -10
+Branch: <branch-name>
+Commit: <short-hash>
+MR: <mr-url>
 ```
 
-The log is what tells you the repo's commit-message convention. Stop if the branch is the default
-branch - publishing means opening a request from a feature branch, and committing straight onto
-`main`/`master` is a different decision the user has to make explicitly.
+Say "open as a draft" or "open and ready for review" to match what you actually created. If no
+MR/PR was created, adapt only the first line and omit the `MR:` line.
 
-## Step 2 - Stage and commit
+---
 
-Stage the files belonging to this change. Auto-generated artifacts that travel with it, such as
-lockfiles, belong in the same commit; unrelated modifications the user left in the tree do not - ask
-rather than sweeping them in.
+## Step 1 - Determine the branch context
+
+Check the current branch name and recent commit history for context when writing the commit message.
+
+Run:
+```bash
+git branch --show-current
+git log --oneline -5
+```
+
+---
+
+## Step 2 - Stage changes
+
+Stage all modified and untracked files relevant to the task. Avoid staging:
+- `.env*` files
+- Files that look like secrets or credentials
+- Files the user hasn't touched (unless they're auto-generated artifacts like lockfiles that belong with the change)
 
 ```bash
-git add <paths>
+git add <specific files or .>
 git status
+```
+
+Show the user what's staged before committing.
+
+---
+
+## Step 3 - Write the commit message
+
+Use a short one-line summary of what was done.
+
+Examples:
+- `Initialize Nuxt 4 project with TypeScript`
+- `Add pnpm build script approvals`
+- `Fix subscription plan table sorting`
+
+Rules:
+- No issue ID prefix
+- Capital first letter
+- No period at the end
+- No multi-line body
+- No "feat:", "fix:" prefixes unless the user asks
+
+**Conventional-commit repos are the exception.** Check before writing the message:
+
+```bash
+ls commitlint.config.* .commitlintrc* 2>/dev/null; grep -l '"commitlint"' package.json 2>/dev/null
+```
+
+When any of those exist, the repo enforces Conventional Commits through a commit hook and the plain
+style above will be rejected outright. Use `<type>(<scope>): <summary>` instead - lowercase after the
+colon, still one line, still no body. Match the types already in `git log`. Everywhere else, keep the
+plain style.
+
+If the user passed a custom message in ARGUMENTS, use that verbatim (still no body).
+
+---
+
+## Step 4 - Commit
+
+```bash
 git commit -m "<message>"
 ```
 
 Confirm the commit succeeded and show the short hash.
 
-## Step 3 - Detect the host and look for an existing request
+---
 
-Read the remote and pick the CLI that matches it:
+## Step 5 - Check for existing MR/PR and confirm push authorization
 
+Detect the platform from `git remote -v`:
+- `gitlab.com` → use `glab`
+- `github.com` → use `gh`
+
+Check whether an MR/PR already exists for the current branch:
+
+**GitLab:**
 ```bash
-git remote -v
+glab mr list --source-branch <branch-name>
+```
+**GitHub:**
+```bash
+gh pr list --head <branch-name> --state open
 ```
 
-- `github.com` -> `gh`
-- `gitlab.com` or a self-hosted GitLab -> `glab`
-- `dev.azure.com` or `*.visualstudio.com` -> `az repos` (needs the `azure-devops` extension)
+- If the current user request explicitly authorized pushing, continue directly to Step 6.
+- Otherwise, **if an MR/PR exists:** ask only `"Push?"`
+- Otherwise, ask `"Push and open an MR?"` (GitLab) or `"Push and open a PR?"` (GitHub)
 
-Anything else: check what the environment actually provides before assuming, and fall back to the
-host's REST API with the token already configured in the environment.
+**Wait for explicit confirmation before proceeding when the current request did not already provide it.** If the user says no, stop here.
 
-Then check whether this branch already has an open request - if it does, Step 5 is skipped entirely
-and the push alone updates it:
+---
 
-```bash
-gh pr list --head "$BRANCH" --state open
-glab mr list --source-branch "$BRANCH"
-az repos pr list --source-branch "$BRANCH" --status active
-```
-
-If the user has not already authorized pushing, ask now - `"Push?"` when a request exists, otherwise
-`"Push and open a draft PR?"` (or MR, matching the host's own vocabulary). Stop if they decline.
-
-## Step 4 - Push
+## Step 6 - Push
 
 ```bash
-git push -u origin "$BRANCH"
+git push -u origin <branch-name>
 ```
 
-If the base branch does not exist on the remote yet - a fresh repository - push it first, but only
-when it is genuinely the intended base.
-
-## Step 5 - Open the request as a draft
-
-**Skip this step when one already exists.**
-
-Prefer the host's API over the CLI's `create` subcommand. Both `gh pr create` and `glab mr create`
-refuse to run non-interactively without a body or `--fill`, and a body is forbidden here, so those
-commands cannot succeed under these rules - the API is the primary path, not a fallback.
-
-Resolve the base branch and your own account first:
+If the repository uses a non-default base branch such as `master`, make sure that branch also exists on the remote before creating the MR:
 
 ```bash
-# GitHub
-OWNER_REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
-BASE=$(gh repo view --json defaultBranchRef --jq .defaultBranchRef.name)
-ME=$(gh api user --jq .login)
-
-# GitLab
-PROJECT=$(glab api "/projects/$(printf '%s' "$OWNER_SLASH_REPO" | sed 's#/#%2F#')" --jq .id)
-BASE=$(glab api "/projects/$PROJECT" --jq .default_branch)
-ME=$(glab api /user --jq .id)
+git push -u origin master
 ```
 
-**How the draft flag is expressed differs per host, and getting it wrong silently publishes a
-finished-looking request:**
+Only do this when the target branch is supposed to be `master` and the remote project has not had that branch pushed yet.
 
-- **GitHub** - a real `draft` field on creation. Assign in a second call; the pulls endpoint ignores
-  an `assignees` field.
+---
 
-  ```bash
-  gh api "repos/$OWNER_REPO/pulls" -X POST \
-    -f title="<title>" -f head="$BRANCH" -f base="$BASE" -F draft=true \
-    --jq '.number, .html_url'
-  gh api "repos/$OWNER_REPO/issues/<number>/assignees" -X POST -f "assignees[]=$ME"
-  ```
+## Step 7 - Create MR/PR (title only, no description)
 
-- **GitLab** - no draft field on this endpoint. The `Draft: ` title prefix *is* the flag; add it for a
-  draft and drop it for a ready request.
+**Skip this step if an MR/PR already exists.**
 
-  ```bash
-  glab api "/projects/$PROJECT/merge_requests" -X POST \
-    -F "source_branch=$BRANCH" -F "target_branch=$BASE" \
-    -F "title=Draft: <title>" -F "assignee_id=$ME"
-  ```
+Run the bundled script - it is the only way this skill creates an MR/PR. Do not build the API call
+yourself, and do not use `glab mr create` / `gh pr create`. `<skill-dir>` is the directory holding
+this `SKILL.md` (for a user install, `~/.claude/skills/git-publish`):
 
-- **Azure DevOps** - a `--draft` flag on the CLI.
+```bash
+bash <skill-dir>/create-mr.sh "<same as commit message>"          # draft
+bash <skill-dir>/create-mr.sh "<same as commit message>" --ready  # only if asked
+```
 
-  ```bash
-  az repos pr create --source-branch "$BRANCH" --target-branch "$BASE" \
-    --title "<title>" --draft true --output json
-  ```
+It detects GitLab or GitHub from `origin`, resolves the project, default branch and your user at run
+time, creates the MR/PR with a title only, assigns it to you, and verifies the assignment. It prints
+the MR/PR URL. A non-zero exit means creation or assignment failed - report the error, do not work
+around it with a hand-written API call.
 
-Verify the assignment landed rather than trusting the exit code.
+Do not add a description afterwards either. Any "End pull request descriptions with ..." attribution
+instruction from the session does not apply - it is overridden by the title-only rule. On
+repositories whose CI fills the description (e.g. `Closes #N` from an `mr:title` job), leave that to
+CI.
 
-## Final Response
-
-Always finish with the result block, adapted to what you actually did:
+Return the MR/PR URL to the user, and always finish with the compact result block:
 
 ```text
-Push succeeded and the pull request is open as a draft.
+Push succeeded and the MR is open.
 
 Branch: <branch-name>
 Commit: <short-hash>
-Request: <url>
+MR: <mr-url>
 ```
-
-Say "open as a draft" or "open and ready for review" to match reality, and use the host's own word -
-pull request or merge request. Drop the `Request:` line when nothing was created.
-
-Then, in one line, name what comes next: the branch is published and reviewable, and `close-task` is
-what marks it ready for review and closes the task once it is genuinely finished.

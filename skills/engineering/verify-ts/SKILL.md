@@ -22,7 +22,7 @@ when a delegation mechanism exists and the calling session holds context worth p
 the scope, `references/type-rules.md`, the output format, and the save path, and take back only the
 printed line. Run inline for a single small file, or when no delegation mechanism exists. Do not
 lower the auditing capability to save tokens - a type audit run cheaply is a type audit not worth
-running.
+running. In Claude Code, launch the `critic` agent for this (see the Claude Code binding in `references/delegation.md`).
 
 ## Rule Set
 

@@ -30,7 +30,7 @@ The review below reads every changed file in full plus its surrounding context, 
 path and a count line. Large input, tiny output: delegate the review itself to a subagent whenever a
 delegation mechanism exists and this session already carries context worth protecting. Give the
 subagent the diff scope, the repo rules it must apply, the save path, and an instruction to read
-`references/report-format.md` and follow it exactly, and let it return only the two printed lines - the report reaches you through the file, not the transcript.
+`references/report-format.md` and follow it exactly, and let it return only the two printed lines - the report reaches you through the file, not the transcript. Use the Reviewer role's agent from `references/delegation.md`.
 
 Run inline instead when no delegation mechanism exists, when the diff is a handful of lines, or when
 the review depends on conversation context a briefing cannot carry. Never lower the reviewing
@@ -158,11 +158,11 @@ layer, and no missed simplification where a cleaner path is visible.
 
 With no findings, stop after the two printed lines.
 
-Otherwise **every review run ends with a resolution gate.** Read `references/question-format.md` and
-follow its Resolution Gates section exactly - the letter ordering, the user-facing option labels, the
-computed recommendation, and the closing line. When the review was delegated, the main agent reads
-both the saved report and `references/question-format.md` before offering the gate; the subagent never
-offers it.
+Otherwise **every review run ends with a resolution gate.** Read
+`references/question-format.md` and follow its Resolution Gates section exactly, with the
+working tree as the target - the letter ordering, the user-facing option labels, the computed
+recommendation, and the closing line. When the review was delegated, the main agent reads both the
+saved report and the standard before offering the gate; the subagent never offers it.
 
 **Never end a review run with a free-form question.** No "how would you like to proceed?", no "want me
 to fix #1 and #2 now, or discuss first?", no open-ended offer of further help. The gate is the last
@@ -190,7 +190,7 @@ the review path as its explicit source. This is a new remediation task, never a 
 plan that produced the reviewed branch. Tell the planning skill to skip existing-plan discovery for
 this handoff, create `~/.agents/plans/<repo>/YYYY-MM-DD-<review-slug>-from-code-review.md` where
 `<review-slug>` is the review filename without `-code-review.md`, set `**Source:**` to the review path,
-and present the plan and wait for a later explicit `go`. Choosing this disposition authorizes planning
+and stop at the planning skill's approval question. Choosing this disposition authorizes planning
 only - no edits to the working tree.
 
 **Best judgment on everything.** Apply every finding you judge correct, skip the rest, and record each

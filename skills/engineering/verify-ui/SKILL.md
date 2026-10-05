@@ -22,6 +22,7 @@ dumps, network logs, and screenshots that bill as image tokens, nearly all of it
 verdict exists. Delegate the whole run to a subagent when a delegation mechanism exists, briefing it
 with the target route or flow, the run command, what the change was meant to do, and the Output
 format below; take back the finished report and let the raw browser traffic die with the subagent.
+In Claude Code, launch the `pilot` agent for this (see the Claude Code binding in `references/delegation.md`).
 
 Run inline when no delegation mechanism exists, or when the user is iterating on a fix and wants to
 watch each attempt. The screenshot requirement still applies to whoever runs the flow.

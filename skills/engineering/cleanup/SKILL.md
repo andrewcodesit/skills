@@ -28,6 +28,7 @@ path. Hand them to a subagent when a delegation mechanism exists and the session
 protecting - especially under `--full`, where the scan reads the whole tree and almost none of it
 belongs in the main thread. Brief it with the scope args, the Step 2 verification rules, the category
 list, the report format, and the save path; take back only the report path and the summary counts.
+In Claude Code, launch the `critic` agent for this (see the Claude Code binding in `references/delegation.md`).
 
 Step 5 never delegates. Confirming categories with the user and applying edits belongs to the main
 agent, which reads the saved report first and owns every file it changes.
