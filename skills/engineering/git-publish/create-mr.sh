@@ -21,10 +21,11 @@ if [[ $remote == *gitlab.com* ]]; then
   me=$(glab api user | jq -r .id)
   $ready || title="Draft: $title"
 
+  # -f sends strings verbatim; -F would read a value starting with "@" from a local file.
   mr=$(glab api "projects/$project/merge_requests" -X POST \
-    -F "source_branch=$branch" \
-    -F "target_branch=$target" \
-    -F "title=$title" \
+    -f "source_branch=$branch" \
+    -f "target_branch=$target" \
+    -f "title=$title" \
     -F "assignee_id=$me")
   iid=$(jq -r .iid <<<"$mr")
 
