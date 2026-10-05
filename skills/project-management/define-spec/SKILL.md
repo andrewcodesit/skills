@@ -12,8 +12,7 @@ Create a short, decision-oriented spec that can be broken into tasks.
 ## Process
 
 1. Read existing context before asking questions:
-   - `AGENTS.md`
-   - `context/*.md`
+   - `AGENTS.md` is already in context; read only the Context Map rows this task needs - the rows that match the idea, never the whole `context/` tree. If the harness has not already loaded `AGENTS.md`, read it once.
    - `README.md`
    - any linked issue, ticket, note, or existing spec
 2. Ask only for missing product or behavior decisions. Keep questions concrete.

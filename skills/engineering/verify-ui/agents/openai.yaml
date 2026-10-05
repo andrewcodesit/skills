@@ -1,0 +1,4 @@
+interface:
+  display_name: "Verify UI"
+  short_description: "Verify local UI changes in browser."
+  default_prompt: "Use $verify-ui to verify the implemented UI changes locally by starting the app if needed, exercising the flow in the browser, checking console and network issues, and reporting concrete findings."

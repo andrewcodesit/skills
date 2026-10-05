@@ -49,18 +49,13 @@ corrected. Save as `~/.agents/plans/<repo>/YYYY-MM-DD-<review-slug>-from-code-re
 
 ## 2. Ground the plan in the codebase
 
-Read the repo's own instructions first:
+The repo and global `AGENTS.md` are already in context; read only the Context Map rows this task
+needs. If the harness has not already loaded one of them, or the `AGENTS.md` of a subtree you will
+work in, read it once.
 
-```bash
-sed -n '1,220p' AGENTS.md 2>/dev/null
-sed -n '1,220p' ~/AGENTS.md 2>/dev/null
-```
-
-If `AGENTS.md` carries a **Context Map**, use it: read only the rows matching this task and load the
-narrowest file each row points at. A planning session that loads the whole `context/` tree pays for
-that context on every later turn and produces a worse plan. Where the map points at a directory
-index, read the index and follow only the leaves this task needs. Read any `AGENTS.md` inside a
-subtree you will be working in.
+Load the narrowest file each matching map row points at. A planning session that loads the whole
+`context/` tree pays for that context on every later turn and produces a worse plan. Where the map
+points at a directory index, read the index and follow only the leaves this task needs.
 
 Then inspect the actual implementation - what exists, what does not, and which APIs are already in
 use. Every file path and framework API that reaches the plan must come from this step.
@@ -86,8 +81,9 @@ implementation step in the plan, or an explicit note that it is unaffected.
 
 ## 3. Grill the user
 
-Non-negotiable when real unknowns remain. Read `references/question-format.md` and follow it exactly
-for every question - including `Why A wins:` and `If wrong:`.
+Non-negotiable when real unknowns remain. Read the `## Questions` section of
+`references/question-format.md` and follow it exactly for every question - including
+`Why A wins:` and `If wrong:`.
 
 When codebase inspection already settled everything, say so and skip this step. The goal is removing
 ambiguity, not performing thoroughness.
@@ -197,7 +193,8 @@ code that does not exist yet, so when unsure, declare the dependency.
 
 Classify by what the task can silently break, not by how much typing it involves. A one-line change
 to a sort comparator or an auth guard is `contract`. Never name a model in the plan - the executing
-agent maps risk to capability, and that mapping changes as models do.
+agent maps Risk to capability through the one binding in `references/delegation.md`, and
+that mapping changes as models do.
 
 State the integration task explicitly whenever tasks fan out: which task reunites the work, and one
 owner for it throughout.
@@ -205,7 +202,8 @@ owner for it throughout.
 **Execution protocol:** after approval, execute one phase at a time in this file. Complete the tasks,
 run and record the gate, then start the next phase. A failed gate keeps work inside that phase until
 it is fixed or the plan is explicitly revised. The Validation section covers the whole feature and
-never substitutes for a phase gate.
+never substitutes for a phase gate. Tick task and gate boxes in this file as they pass, so a session
+reset (see Context Management in the global `AGENTS.md`) resumes from the first unticked box.
 
 ## 5. Quality bar
 
@@ -229,12 +227,14 @@ Before saving, confirm each of these holds. Fix the plan where one does not.
 - Every task touching a Key Contract or a Pre-mortem scenario is classified `contract`.
 - Commit, push, and PR steps stay out of the plan.
 
-## 6. Show the plan and wait
+## 6. Show the plan and ask for approval
 
 ```
-Plan saved → ~/.agents/plans/<repo-name>/<filename>.md - reply "go" to execute, or tell me what to change.
+Plan saved → ~/.agents/plans/<repo-name>/<filename>.md
 ```
 
 Add a 1–3 sentence summary of the main decisions. Keep the plan body out of chat.
 
-Then stop and wait for explicit approval before any implementation.
+Then ask for approval as a lettered choice: `A. Approve and execute (recommended)` /
+`B. Change something`. On approval, invoke the `execute` skill right away - the user does not need
+to type anything else. On changes, revise the plan and ask again. Never implement before that answer.

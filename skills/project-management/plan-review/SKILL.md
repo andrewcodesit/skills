@@ -35,13 +35,9 @@ decisions claimed as settled that the spec does not support.
 
 ### 1. Repo rules and architecture
 
-```bash
-sed -n '1,220p' AGENTS.md 2>/dev/null
-sed -n '1,220p' ~/AGENTS.md 2>/dev/null
-```
-
-Follow `AGENTS.md`'s **Context Map** for the areas the plan touches - the architecture index and the
-decision log matter most. Read the decision log before calling any structural choice wrong: it
+The repo and global `AGENTS.md` are already in context; read only the Context Map rows this task
+needs - for a plan review, the rows for the areas the plan touches. If the harness has not already
+loaded one of them, read it once. The architecture index and the decision log matter most. Read the decision log before calling any structural choice wrong: it
 records what breaks if a decision is reversed.
 
 Flag: explicit repo-rule violations, work placed in the wrong app/package/layer, structures that
@@ -167,21 +163,14 @@ Plan review saved → ~/.agents/plan-reviews/<repo>/<slug>-plan-review.md
 ## Offer resolution
 
 Skip this entirely when the verdict is `ready` with no open questions. Otherwise, read
-`references/question-format.md` and follow its question format and rules - but replace its generic
-Resolution Gates dispositions with these:
-
-1. Grill one-by-one on ambiguous findings only, then apply all accepted corrections to the existing plan
-2. Grill on every finding, then apply the accepted corrections to the existing plan
-3. Apply best judgment on every finding, then edit the existing plan and summarize the amendments
-4. Do nothing - leave the existing plan unchanged
-
-Compute the recommendation: any architecture-level finding, finding crossing 3+ planned files, or
-decomposition decision → recommend **1**, so the material tradeoff is resolved before amending.
-Otherwise → recommend **3**.
+`references/question-format.md` and offer a resolution gate per its Resolution Gates
+section, with the **plan file** as the gate's target. That target drops the `plan` disposition and
+sets the recommendation; the labels, order and format are the standard's.
 
 The plan under review is the only plan artifact, and the saved review is its audit trail. Apply every
 correction by editing that exact plan file in place, preserving its format and intent. This skill
-never creates a new plan and never hands findings to the planning skill.
+never creates a new plan and never hands findings to the planning skill. Grilling walks one finding
+per message using the standard's question format.
 
 Wait for the answer. Record the gate answer and every per-finding decision in a `## Decisions` section
 appended to the review file, preserving accepted tradeoffs and any rejected finding that materially
