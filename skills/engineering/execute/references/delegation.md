@@ -123,7 +123,7 @@ never `general-purpose`, when a role fits.
 | Implementer | `smith` | from Risk, below |
 | Plan executor | `foreman` | from the plan's highest Risk, below |
 | Reviewer | `critic` | `opus`, never overridden down |
-| Refuter | `devil` | `opus` |
+| Refuter | `skeptic` | `opus` |
 | Validator | `gatekeeper` | `haiku` |
 | Browser verifier | `pilot` | `sonnet` |
 

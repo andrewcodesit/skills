@@ -96,7 +96,7 @@ Claude Code subagents in [`agents/`](./agents), shipped with the plugin. Skills 
 | [`smith`](./agents/smith.md) | Implementer - one plan task from a briefing pack | `execute` |
 | [`foreman`](./agents/foreman.md) | Plan executor - a whole approved plan in its own worktree | `start-task` |
 | [`critic`](./agents/critic.md) | Reviewer - read-heavy audits and reviews | `code-review`, `verify-ts`, `tests-audit`, `cleanup` |
-| [`devil`](./agents/devil.md) | Refuter - tries to disprove one finding | on demand, before acting on a costly finding |
+| [`skeptic`](./agents/skeptic.md) | Refuter - tries to disprove one finding | on demand, before acting on a costly finding |
 | [`gatekeeper`](./agents/gatekeeper.md) | Validator - typecheck, lint, tests; returns failures only | `execute`, `close-task` |
 | [`pilot`](./agents/pilot.md) | Browser verifier - drives a real browser | `verify-ui` |
 

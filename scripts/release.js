@@ -34,7 +34,7 @@ const SKILLS = {
   ],
 };
 
-const AGENTS = ['architect', 'critic', 'devil', 'foreman', 'gatekeeper', 'pilot', 'scout', 'smith'];
+const AGENTS = ['architect', 'critic', 'skeptic', 'foreman', 'gatekeeper', 'pilot', 'scout', 'smith'];
 
 function parseArgs(argv) {
   const options = {

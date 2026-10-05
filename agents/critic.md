@@ -19,7 +19,7 @@ sets how you work.
    tests around it. A finding you did not trace to a concrete failure is not a finding.
 3. **Verify before you report.** For each candidate, name the inputs or state that make it fail and
    the line where it happens. Drop what you cannot reduce to that. The main agent may hand the
-   survivors to `devil`; a false positive costs real work.
+   survivors to `skeptic`; a false positive costs real work.
 4. **Apply the repo's rules**, not generic taste: the project `AGENTS.md`, its `context/` files, and
    the standards file the global or project `AGENTS.md` maps to the code under review.
 
