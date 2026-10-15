@@ -50,12 +50,18 @@ runs alone first, the independent tasks that depend on it form the next wave, an
 task touching a shared file (index, router, schema, migration list) runs alone again. Sequence
 whenever in doubt - a wrong parallel run costs more to untangle than a slow serial one.
 
-**Inline by default, within the cap.** Per `references/delegation.md`, a task run gets at
-most 3 subagents - implementers, validators and browser verifiers together - so most tasks run
-**inline** (done by this agent, in wave order). Spend the 3 on what a cold agent genuinely does
-cheaper than the main thread: the one or two largest isolated implementation tasks, the validation
-run, a browser check. Never one agent per task. Needing more than 3 means asking the user first,
-with the count and the reason. Delegated tasks in the same wave may run in parallel.
+**Whole-plan handoff first.** When the plan meets the whole-plan handoff threshold in
+`references/delegation.md`, launch one Plan executor for the entire plan instead of splitting it:
+brief it with the plan path, the working directory, the validation commands and the model from the
+plan's highest task Risk, then skip to step 4 and verify its diff exactly as you would a delegated
+task's. A `NEEDS_DECISION` or `BLOCKED` report comes back to you to resolve inline or with the user.
+
+**Otherwise inline, within the cap.** Per `references/delegation.md`, a task run gets at most 3
+counted subagents, so the remaining plans run **inline** (done by this agent, in wave order). Spend
+them on what a cold agent genuinely does cheaper than the main thread: the one or two largest
+isolated implementation tasks, a design-led UI task (the Designer), a browser check. Validation runs
+go to the Validator, which the cap exempts. Never one agent per task. Needing more than the cap means asking the user first, with the
+count and the reason. Delegated tasks in the same wave may run in parallel.
 
 ### 2b. Capability per task
 
@@ -73,7 +79,7 @@ able to veto an assignment before the tokens are spent.
 ## 3. Execute
 
 **Delegated tasks.** Only the tasks step 2a picked for the cap get an agent - the Implementer,
-Validator, or Browser verifier role's agent from `references/delegation.md`, never a
+Designer, Validator, or Browser verifier role's agent from `references/delegation.md`, never a
 generic one. Independent delegated tasks in one wave may launch together; wait for the wave before
 starting work that depends on it.
 

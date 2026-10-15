@@ -17,6 +17,16 @@ expensive read that never lands in it. Delegate when that trade is favourable, n
   codebase searches, long iterative fix loops, a validation run whose output may be silence or forty
   errors, browser sessions, and any exploration the main thread will never need again. A skill that
   writes its report to `~/.agents/` and prints only a path is the ideal candidate.
+- **Whole-plan handoff.** An approved plan that touches ~5 or more files, or has 3 or more tasks,
+  and whose highest task Risk is `mechanical` or `standard`, goes to one Plan executor for the whole
+  plan, on the model that Risk maps to. The plan file is the briefing, so the handoff costs one cold
+  boot on a cheaper model, and the main thread keeps only the status report and then reviews the
+  diff. Plans with a `contract` task, and plans below the threshold, run inline: the main thread
+  already holds the reasoning a contract task needs, and a small plan costs less inline than a boot.
+- **Design-led work** - a new or reshaped screen or flow, a UX or visual review, or a UI task where
+  the quality of the experience is the point - goes to the Designer, whichever path the rest of the
+  work takes. In a whole-plan handoff, carve the design-led tasks out for the Designer first and hand
+  the remainder to the Plan executor; if nothing remains, the Designer's run is the whole handoff.
 - **Keep inline:** small and medium edits (copy, i18n keys, a component, route wiring, a helper, a
   review's fix list), a single command whose output you need anyway (pipe it through
   `| tail -n 40`), and anything needing conversation context a briefing cannot carry.
@@ -29,6 +39,9 @@ expensive read that never lands in it. Delegate when that trade is favourable, n
 
 - **At most 3 subagents per task run**, counting every kind and every re-spawn. Continuing an agent
   that already ran does not count.
+- **Exempt: Searcher and Validator.** They run on the cheapest model, read only, and return a short
+  answer, so they do not count against the cap; at most 3 of each per task run. Every other role,
+  the Browser verifier and Designer included, counts.
 - More requires asking the user first, with the count and the reason. A skill invocation, a plan
   approval, or "go" is never that approval.
 - **Batches.** A batch approval that names N tasks authorises N task runs, each under its own cap of
@@ -56,11 +69,12 @@ environment, use the harness's generic subagent with the same briefing and outpu
 | Searcher | a broad "where is X" sweep |
 | Planner | one plan per task when planning several tasks in parallel (`plan` steps 2, 4, 5) |
 | Implementer | one plan task from a briefing pack (`execute`) |
-| Plan executor | one whole approved plan, end to end, in its own worktree (parallel tasks) |
+| Plan executor | one whole approved plan, end to end, in a worktree (parallel tasks) or the task checkout (whole-plan handoff) |
 | Reviewer | read-heavy audits and reviews (`code-review`, `verify-ts`, `tests-audit`, `cleanup`) |
 | Refuter | trying to disprove one finding before it is acted on |
 | Validator | typecheck, lint and tests after a change |
 | Browser verifier | `verify-ui` and project browser checks |
+| Designer | design-led UI work: new or reshaped screens and flows, UX and visual reviews |
 
 Project-specific agents (domain auditors, a project validator) are routed by the project's own
 `AGENTS.md`.
@@ -126,6 +140,12 @@ never `general-purpose`, when a role fits.
 | Refuter | `skeptic` | `opus` |
 | Validator | `gatekeeper` | `haiku` |
 | Browser verifier | `pilot` | `sonnet` |
+| Designer | `michelangelo` | `opus`, never overridden down |
+
+**Main thread.** The interactive session runs on `opus` at the user's effort setting: it orchestrates,
+plans, reviews, and does `contract` work inline. Execution goes down the table above; the main
+thread never switches itself to a cheaper model to implement. A session that is only quick questions
+or lookups may run on `sonnet` (`/model sonnet`, or `claude --model sonnet`).
 
 **Risk to model** (the only copy of this mapping): `mechanical` -> `haiku`, `standard` -> `sonnet`,
 `contract` -> `opus`. Set the model on each `smith` launch; one Risk step up means the next model in
