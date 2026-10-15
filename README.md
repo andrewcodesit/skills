@@ -99,6 +99,7 @@ Claude Code subagents in [`agents/`](./agents), shipped with the plugin. Skills 
 | [`skeptic`](./agents/skeptic.md) | Refuter - tries to disprove one finding | on demand, before acting on a costly finding |
 | [`gatekeeper`](./agents/gatekeeper.md) | Validator - typecheck, lint, tests; returns failures only | `execute`, `close-task` |
 | [`pilot`](./agents/pilot.md) | Browser verifier - drives a real browser | `verify-ui` |
+| [`michelangelo`](./agents/michelangelo.md) | Designer - design-led UI work and UX reviews | `execute`, design-led tasks |
 
 ## How a skill is structured
 
