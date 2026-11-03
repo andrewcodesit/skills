@@ -139,6 +139,17 @@ gh pr list --head <branch-name> --state open
 git push -u origin <branch-name>
 ```
 
+If the branch was rebased and its remote copy is no longer an ancestor of `HEAD`
+(`git merge-base --is-ancestor origin/<branch-name> HEAD` fails), push with a lease instead:
+
+```bash
+git push --force-with-lease=<branch-name>:<remote-sha-before-rebase> -u origin <branch-name>
+```
+
+Only for a task branch that was rebased onto its base branch, never for the default branch. Name
+the remote SHA recorded before the rebase in the lease; if the lease is rejected, someone else
+pushed - stop and report instead of retrying.
+
 If the repository uses a non-default base branch such as `master`, make sure that branch also exists on the remote before creating the MR:
 
 ```bash

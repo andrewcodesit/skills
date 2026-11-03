@@ -69,7 +69,7 @@ Starting from a vague idea is where agents lose the thread fastest. **[`define-s
 - **[cleanup](./skills/engineering/cleanup/SKILL.md)** - Scans the repo for dead code, debug artifacts, and other cruft, then fixes it category by category with confirmation.
 - **[code-review](./skills/engineering/code-review/SKILL.md)** - Deep code review focused on structural issues, behavioral risks, and missing coverage.
 - **[execute](./skills/engineering/execute/SKILL.md)** - Runs an approved plan, then verifies the implementation against the plan, repo standards, and the contracts the plan named.
-- **[git-merge](./skills/engineering/git-merge/SKILL.md)** - Drives an open merge/pull request to merged: fixes CI failures with real fixes, checks mergeability, merges, and resets onto the default branch.
+- **[git-merge](./skills/engineering/git-merge/SKILL.md)** - Drives an open merge/pull request to merged: fixes CI failures with real fixes, checks mergeability, merges, and resets onto the default branch. Runs forked on Haiku in Claude Code and escalates anything beyond mechanical fixes to the main session.
 - **[git-publish](./skills/engineering/git-publish/SKILL.md)** - Commits the current branch, pushes it, and opens a draft merge/pull request on GitHub or GitLab.
 - **[tests-audit](./skills/engineering/tests-audit/SKILL.md)** - Audits an existing test suite for bloat, flakiness, and redundancy, then right-sizes it.
 - **[verify-ui](./skills/engineering/verify-ui/SKILL.md)** - Verifies local UI changes in a running app, including the browser flow, layout, and visible regressions.
@@ -78,7 +78,7 @@ Starting from a vague idea is where agents lose the thread fastest. **[`define-s
 ### Project Management
 
 - **[breakdown-tasks](./skills/project-management/breakdown-tasks/SKILL.md)** - Breaks specs or project goals into local or external tasks, with epics for larger work.
-- **[close-task](./skills/project-management/close-task/SKILL.md)** - Finishes a task by running final validation, marking the merge/pull request ready for review, routing the resulting review findings, and marking the task done.
+- **[close-task](./skills/project-management/close-task/SKILL.md)** - Finishes a task by running final validation, marking the merge/pull request ready for review, routing the resulting review findings, and marking the task done. Runs forked on Haiku in Claude Code and escalates anything beyond mechanical fixes to the main session.
 - **[define-spec](./skills/project-management/define-spec/SKILL.md)** - Turns a project idea, feature request, bug, or vague goal into a concise implementation-ready spec.
 - **[handoff](./skills/project-management/handoff/SKILL.md)** - Generates a comprehensive handoff spec so another agent can pick up the session.
 - **[plan](./skills/project-management/plan/SKILL.md)** - Writes an implementation plan for a feature, task, or spec.
@@ -93,13 +93,13 @@ Claude Code subagents in [`agents/`](./agents), shipped with the plugin. Skills 
 | --- | --- | --- |
 | [`scout`](./agents/scout.md) | Searcher - broad "where is X" sweeps | any skill, through the Searcher role |
 | [`architect`](./agents/architect.md) | Planner - one plan per task in parallel runs | `start-task` |
-| [`smith`](./agents/smith.md) | Implementer - one plan task from a briefing pack | `execute` |
+| [`smith`](./agents/smith.md) | Implementer - one plan task from a briefing pack, including builds from a Designer spec | `execute`, model escalations |
 | [`foreman`](./agents/foreman.md) | Plan executor - a whole approved plan in its own worktree | `start-task` |
 | [`critic`](./agents/critic.md) | Reviewer - read-heavy audits and reviews | `code-review`, `verify-ts`, `tests-audit`, `cleanup` |
 | [`skeptic`](./agents/skeptic.md) | Refuter - tries to disprove one finding | on demand, before acting on a costly finding |
-| [`gatekeeper`](./agents/gatekeeper.md) | Validator - typecheck, lint, tests; returns failures only | `execute`, `close-task` |
+| [`gatekeeper`](./agents/gatekeeper.md) | Validator - typecheck, lint, tests; returns failures only | `execute`, model escalations |
 | [`pilot`](./agents/pilot.md) | Browser verifier - drives a real browser | `verify-ui` |
-| [`michelangelo`](./agents/michelangelo.md) | Designer - design-led UI work and UX reviews | `execute`, design-led tasks |
+| [`michelangelo`](./agents/michelangelo.md) | Designer - design specs and UX or visual reviews; never implements | `execute`, design-led tasks |
 
 ## How a skill is structured
 

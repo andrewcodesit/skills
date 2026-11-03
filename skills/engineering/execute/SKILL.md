@@ -59,7 +59,7 @@ task's. A `NEEDS_DECISION` or `BLOCKED` report comes back to you to resolve inli
 **Otherwise inline, within the cap.** Per `references/delegation.md`, a task run gets at most 3
 counted subagents, so the remaining plans run **inline** (done by this agent, in wave order). Spend
 them on what a cold agent genuinely does cheaper than the main thread: the one or two largest
-isolated implementation tasks, a design-led UI task (the Designer), a browser check. Validation runs
+isolated implementation tasks, a design spec or design review (the Designer; the build from its spec goes to the Implementer), a browser check. Validation runs
 go to the Validator, which the cap exempts. Never one agent per task. Needing more than the cap means asking the user first, with the
 count and the reason. Delegated tasks in the same wave may run in parallel.
 

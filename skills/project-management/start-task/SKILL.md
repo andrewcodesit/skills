@@ -35,8 +35,10 @@ still goes through steps 1-3; this section replaces where they run and who runs 
    dependencies from the lockfile. One task may stay in the main checkout and run the normal flow.
 3. **One `architect` per worktree task**, in the background, briefed with the task source, the worktree
    path, and the save path `~/.agents/plans/<repo>/YYYY-MM-DD-<branch>.md`.
-4. **Approval per task.** As each `architect` returns, show the plan path, its summary and its open
-   questions, and ask for approval the way the `plan` skill does (step 6). Never treat one task's
+4. **Approval per task, one question at a time.** Wait until every `architect` has returned before
+   asking anything. Then show each plan's path and summary, and ask its open questions and its
+   approval (the way the `plan` skill does, step 6) strictly one per message: wait for the answer
+   before asking the next, finishing one task before moving to the next. Never treat one task's
    approval as another's.
 5. **One `foreman` per approved plan**, in the background, briefed with the plan path, the worktree,
    the project validation commands, and the model from the plan's highest task Risk. The `foreman`

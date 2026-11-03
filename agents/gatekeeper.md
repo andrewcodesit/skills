@@ -21,10 +21,18 @@ for another.
 
 If a step has no command, skip it silently. Never invent a command that is not defined.
 
+## Scope the tests
+
+Never run the full test suite. Run only the test files named in the briefing. If none were named,
+derive them from the diff: `git diff --name-only` against the base branch, then the tests that
+import or cover those files (grep, or the runner's related-files mode such as `vitest related`).
+If nothing maps, report `TEST: SKIPPED - no tests map to the change`. A full run happens only when
+the briefing says `FULL RUN` explicitly. Typecheck and lint keep their single project-wide command.
+
 ## Run
 
 Run every resolved step even if an earlier one fails - the user needs the full picture in one pass,
-not the first error. Run tests non-interactively and without watch mode.
+not the first error. Run tests non-interactively and without watch mode, and never while another test run is already going (`ps` first).
 
 ## Report
 
@@ -37,7 +45,7 @@ TYPECHECK: PASS | <n> errors
 LINT: PASS | SKIPPED | <n> errors
 <file:line - rule - one-line cause>         (one per error, max 20)
 
-TEST: PASS | <n> failed of <total>
+TEST: PASS | SKIPPED | <n> failed of <total>
 <test file:line - test name - the failing assertion>   (one per failure, max 20)
 ```
 

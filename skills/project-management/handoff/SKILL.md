@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: Generates a comprehensive handoff spec for the current session so another agent can pick up exactly where this one left off. Triggered by /handoff.
+description: Generates a comprehensive handoff spec for the current session so another agent can pick up exactly where this one left off, then copies a short ready-to-paste prompt for the next session to the clipboard. Triggered by /handoff.
 ---
 
 # Handoff
@@ -71,11 +71,39 @@ Commands, env vars, credential patterns, known flaky tests. Omit when nothing is
 
 Fill every section; "None." or "N/A" only where one genuinely doesn't apply.
 
-## 3. Surface it
+## 3. Write the handoff prompt
 
-Print the full path, show the **Goal**, **Current State**, and **Next Steps** sections inline so the
-user can spot-check, and close with:
+Compose a short prompt the user pastes as the first message of the next session. It points at the
+doc rather than repeating it - the doc is the briefing, the prompt is the ignition. At most 10 lines,
+in the language the user has been writing in:
 
-> Handoff doc saved. Pass `~/.agents/handoffs/<filename>` to the next agent to continue.
+```text
+Continue <task title> in <repo-name> (branch <branch-name>).
+Read the handoff first: <absolute path to the handoff .md>
+Brief: <2-3 sentences - where things stand and what matters most>
+Start with: <Next Steps item 1, concrete enough to act on>
+<one line for a blocker, a pending decision, or a hard constraint - omit when none>
+```
+
+Use the absolute path (no `~`), so the prompt works from any working directory.
+
+Copy it to the clipboard by piping it to the bundled script through a quoted heredoc, so quotes and
+backticks in the prompt survive:
+
+```bash
+<skill-dir>/scripts/copy-to-clipboard.sh <<'PROMPT'
+<prompt text>
+PROMPT
+```
+
+If the script reports that no clipboard tool exists, say so in one line; the prompt is still printed
+below.
+
+## 4. Surface it
+
+Print the full path of the doc, show the **Goal**, **Current State**, and **Next Steps** sections
+inline so the user can spot-check, then show the handoff prompt in a fenced block and close with:
+
+> Handoff doc saved and the prompt is on your clipboard - paste it into a fresh session.
 
 The user can read the rest themselves - keep the other sections out of chat.
