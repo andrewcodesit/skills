@@ -35,7 +35,7 @@ function validateSkills(skillsDir) {
 // References that several skills deliberately duplicate so each skill stays self-contained and
 // installable on its own. Every copy must be byte-identical; drift between copies is the failure
 // this guards against.
-const SHARED_REFERENCES = ['question-format.md', 'delegation.md'];
+const SHARED_REFERENCES = ['question-format.md', 'delegation.md', 'model-escalation.md'];
 
 function findSharedCopies(skillsDir, filename) {
   const copies = [];

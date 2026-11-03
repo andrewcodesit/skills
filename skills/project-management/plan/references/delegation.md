@@ -24,9 +24,12 @@ expensive read that never lands in it. Delegate when that trade is favourable, n
   diff. Plans with a `contract` task, and plans below the threshold, run inline: the main thread
   already holds the reasoning a contract task needs, and a small plan costs less inline than a boot.
 - **Design-led work** - a new or reshaped screen or flow, a UX or visual review, or a UI task where
-  the quality of the experience is the point - goes to the Designer, whichever path the rest of the
-  work takes. In a whole-plan handoff, carve the design-led tasks out for the Designer first and hand
-  the remainder to the Plan executor; if nothing remains, the Designer's run is the whole handoff.
+  the quality of the experience is the point - is split in three. The Designer writes the design
+  spec (flow, layout per breakpoint, every state, tokens, components, copy) to a file; the
+  Implementer builds it from that spec on `standard` Risk; the Designer then reviews the built
+  result against the spec, and its findings go back to the Implementer. The Designer never writes
+  the production code. In a whole-plan handoff, the spec comes first and its implementation joins
+  the Plan executor's work.
 - **Keep inline:** small and medium edits (copy, i18n keys, a component, route wiring, a helper, a
   review's fix list), a single command whose output you need anyway (pipe it through
   `| tail -n 40`), and anything needing conversation context a briefing cannot carry.
@@ -74,7 +77,7 @@ environment, use the harness's generic subagent with the same briefing and outpu
 | Refuter | trying to disprove one finding before it is acted on |
 | Validator | typecheck, lint and tests after a change |
 | Browser verifier | `verify-ui` and project browser checks |
-| Designer | design-led UI work: new or reshaped screens and flows, UX and visual reviews |
+| Designer | design specs for new or reshaped screens and flows, UX and visual reviews; never implements |
 
 Project-specific agents (domain auditors, a project validator) are routed by the project's own
 `AGENTS.md`.
@@ -110,6 +113,14 @@ instructions." An agent given no contract returns a transcript.
 Follow up with an agent that already ran by continuing it; its context is intact. A fresh launch
 starts cold and pays the whole discovery cost again. Once a search is delegated, do not also run it
 in the main thread - wait for the result.
+
+**Context budget per agent: size phases for 80-120k, hand off at ~150k, hard ceiling 200k.** Below
+~100k a handoff costs more than it saves (a cold boot re-reads 30-60k). Check an agent's reported
+token usage before every continuation. At ~150k the agent finishes its current step, writes a
+handoff file (status, decisions, changed files, validation, exact next steps) under
+`~/.agents/plans/<repo-name>/` and stops; a fresh agent is briefed from that file. Never continue an
+agent past 200k. Never hand implementation to an agent that already spent its context on design.
+A handoff re-spawn still counts against the cap.
 
 ## Capability by risk
 
@@ -147,9 +158,77 @@ plans, reviews, and does `contract` work inline. Execution goes down the table a
 thread never switches itself to a cheaper model to implement. A session that is only quick questions
 or lookups may run on `sonnet` (`/model sonnet`, or `claude --model sonnet`).
 
-**Risk to model** (the only copy of this mapping): `mechanical` -> `haiku`, `standard` -> `sonnet`,
+**Claude Risk to model:** `mechanical` -> `haiku`, `standard` -> `sonnet`,
 `contract` -> `opus`. Set the model on each `smith` launch; one Risk step up means the next model in
 that list.
 
+**Forked skills.** `close-task` and `git-merge` run forked on `haiku` (`context: fork`, `model: haiku`
+in their frontmatter). What they may fix and how their `ESCALATE` returns are handled is in
+`model-escalation.md`. Never launch `foreman` on `opus`: a plan that needs Opus has a `contract` task
+and runs inline. A `PreToolUse` hook on the Agent tool can enforce this.
+
 **Continuation** uses `SendMessage` to the agent's name. A new `Agent` call is a re-spawn and counts
 against the cap.
+
+## OpenCode binding
+
+The same named agents live in `~/.config/opencode/agents/`, generated from `~/.agents/agents/` by
+`node ~/.agents/bin/sync-opencode-agents.mjs`. Edit only the source in `~/.agents/agents/`, then
+re-run the script; never hand-edit the generated files. A project's `.opencode/agents/` shadows a
+user agent of the same name. Launch them through the `subagent` tool with the agent name; use
+`explore` or `general` only when no named agent fits.
+
+Roles and default models match the Claude Code table, with `opus` -> `anthropic/claude-opus-5-5`,
+`sonnet` -> `anthropic/claude-sonnet-5-5`, `haiku` -> `anthropic/claude-haiku-5-5`. The Risk-to-model
+mapping above applies unchanged: pass the mapped ID in the `subagent` tool's `model` parameter on each
+`smith` and `foreman` launch. Never pass a lower model to `architect`, `critic`, or `michelangelo`.
+
+**Continuation** passes the earlier run's `sessionID` back to the `subagent` tool. A call without a
+`sessionID` is a re-spawn and counts against the cap.
+
+## Codex binding
+
+The same nine named agents live in `~/.codex/agents/*.toml`, generated from `~/.agents/agents/`
+by `node ~/.agents/bin/sync-codex-agents.mjs`. Edit the shared Markdown source, then rerun the
+generator. Never hand-edit generated files. `--check` verifies that source and output agree.
+Project `.codex/agents/` definitions take precedence over personal definitions of the same name.
+
+| Role | Agent | Model | Reasoning |
+| --- | --- | --- | --- |
+| Searcher | `scout` | `gpt-6-luna` | `high` |
+| Planner | `architect` | `gpt-6-astra` | `low` |
+| Implementer | `smith` | from Risk, below | from Risk |
+| Plan executor | `foreman` | from the plan's highest Risk | from Risk |
+| Reviewer | `critic` | `gpt-6-astra` | `low` |
+| Refuter | `skeptic` | `gpt-6-astra` | `low` |
+| Validator | `gatekeeper` | `gpt-6-luna` | `high` |
+| Browser verifier | `pilot` | `gpt-6.1-sol` | `medium` |
+| Designer | `michelangelo` | `gpt-6-astra` | `low` |
+
+**Codex Risk to model:** `mechanical` -> `gpt-6-luna` / `high`,
+`standard` -> `gpt-6.1-sol` / `medium`, `contract` -> `gpt-6-astra` / `low`.
+One Risk step up means the next tier in that list. Never downgrade the fixed specialist models.
+The generator translates Claude model names in descriptions and skill paths for Codex.
+`smith` and `foreman` deliberately omit fixed model and reasoning fields: Codex custom-agent file
+settings override spawn settings, so the parent selects their model and reasoning on every launch.
+
+**Main thread.** Keep the user's configured primary model and reasoning. Follow the shared
+delegation thresholds and caps; do not change the primary model to execute cheaper work.
+
+**Launching.** Use the named custom agent when the spawn tool exposes agent selection. If the
+current client exposes only generic `spawn_agent`, read the generated agent's `developer_instructions`
+and include them with the complete briefing; set `task_name` to the specialist name and explicitly
+pass the mapped model and reasoning. A task name alone does not load a custom agent. For that API,
+use `fork_turns="none"` to apply explicit model overrides and preserve cold, bounded briefings.
+Do not silently run all roles on the primary model. If a mapped model is unavailable, report it
+and seek a compatible mapping rather than downgrading a specialist.
+
+**Continuation** uses `followup_task` with the earlier agent ID for idle agents, or `send_message`
+for running ones, where those APIs exist. Do not re-spawn to send a follow-up.
+
+**Limits.** `[agents]` enables subagents and caps concurrent spawned threads at 3; the shared
+per-task lifetime cap and exemptions above still apply. Subagents inherit parent permissions and
+MCP connections. Claude tool allowlists, denied tools, read-only roles, and the no-nesting rule are
+translated into behavioral instructions; they are not separate Codex sandboxes or equivalent
+tool-level enforcement. Skill and browser tooling resolve through the active Codex catalog.
+Start a new Codex session after changing fleet configuration or delegation rules.

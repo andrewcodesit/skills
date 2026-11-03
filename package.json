@@ -1,6 +1,6 @@
 {
   "name": "@andrewcodesit/skills",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Distributes agent skills to AI coding agents",
   "scripts": {
     "test": "node --test tests/validate-skills.test.js",

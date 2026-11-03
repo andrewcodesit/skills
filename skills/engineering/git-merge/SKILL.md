@@ -1,6 +1,8 @@
 ---
 name: git-merge
 description: Check the CI pipeline for the current branch's MR/PR, fix any failure with a real (non-hacky) code fix and push it automatically, merge once the pipeline is green, then check out the default branch, pull, and offer to start the next task. Triggered by phrases like "merge this", "get this merged", "fix the pipeline and merge", "git-merge", or "/git-merge".
+context: fork
+model: haiku
 ---
 
 # Git Merge
@@ -11,12 +13,23 @@ Drive an open MR/PR to green and merge it, then reset the working tree onto the 
 the next task. This skill trades the usual per-step confirmations for speed on a narrow, well-defined
 path - see **Authorization** before changing how it behaves.
 
+## How this skill runs
+
+Where the harness supports it, this skill runs as a forked subagent on a small model: a fresh
+context, no conversation history, no way to ask the user, and no subagents of its own. Every "stop
+and ask" below means: stop and return `NEEDS_USER` with the question. Every failure outside the
+mechanical class in `references/model-escalation.md` means: stop before pushing and return `ESCALATE`.
+Where the harness runs the skill inline in the main session instead, that session handles each
+status itself, as **Continuation** describes. Read `references/model-escalation.md` before Step 3.
+
 ## Authorization (read first)
 
 Invoking this skill is the user's standing authorization for exactly two normally-gated actions,
 **scoped to the current branch and its MR/PR only**:
 
-1. Pushing a pipeline-fix commit without asking first.
+1. Pushing a pipeline-fix commit without asking first. In the forked run this covers only fixes in
+   the mechanical class; any other fix escalates, and the main session applies it under this same
+   authorization and the same Rules, then pushes it and re-invokes this skill.
 2. Merging the MR/PR once the pipeline is green, without asking first.
 
 Nothing else is pre-authorized. Force-push, touching any branch other than the current one and the
@@ -62,8 +75,10 @@ license to push whatever makes a check pass.
   `.commitlintrc*`/a `"commitlint"` key in `package.json` is present.
 - **No AI attribution anywhere** - never add `Co-Authored-By: Claude`, `Claude-Session:`, "Generated
   with Claude Code", or any similar trailer to a commit message or MR/PR text.
-- **Bounded retries.** Attempt a fix-push-recheck cycle at most 3 times. If the pipeline is still red
-  after 3 real fix attempts, stop and report - do not escalate to a hackier fix to "just get it green."
+- **Bounded retries.** In the forked run, a mechanical fix that does not turn the failing job green
+  escalates after that one attempt. Across the whole run, including the main session's escalated
+  fixes, attempt a fix-push-recheck cycle at most 3 times. If the pipeline is still red
+  after 3 real fix attempts, stop and report - do not resort to a hackier fix to "just get it green."
 - **Never merge on a false green.** If the pipeline is green only because a job was skipped, allowed
   to fail, or didn't run at all (e.g. `rules:` excluded it), treat that as not green and say so.
 - **Never force a blocked merge.** If the MR/PR is blocked by anything other than the pipeline
@@ -98,7 +113,7 @@ gh pr list --head "$(git branch --show-current)" --state open
 ```
 
 If none exists, stop and tell the user - this skill drives an existing MR/PR to merge, it doesn't
-create one (that's `git-publish`).
+create one (that's `git-publish`) - return `NEEDS_USER`.
 
 ### Drafts
 
@@ -108,8 +123,8 @@ what releases the automated review it then reads.
 
 So a draft here means the flow was skipped, not that a flag needs flipping in passing. Stop and say
 so: the branch has not been through `close-task`, which means final validation and the code review
-have not happened either. Marking it ready yourself would silently skip both. Offer `close-task`
-instead, and merge only once it has run.
+have not happened either. Marking it ready yourself would silently skip both. Return `NEEDS_USER`
+offering `close-task` instead; merge only once it has run.
 
 Check the flag before anything else:
 
@@ -170,13 +185,16 @@ gh run list --branch "$(git branch --show-current)" --limit 1
 gh run view <run-id> --log-failed
 ```
 
-Read the actual error, not just the job name. Reproduce it locally when possible (`pnpm lint`,
+Read the actual error, not just the job name. Keep log reads short: `| tail -n 80` on a trace, or
+`grep` it for the error, never a whole log. Reproduce it locally when possible (`pnpm lint`,
 `pnpm typecheck`, `pnpm test`, `pnpm build`, or whatever the failing job runs - check the job's
 script in `.gitlab-ci.yml`/`.github/workflows/*.yml` if unsure) so the fix is verified before it's
 pushed, not just guessed at from the log.
 
 Classify the failure honestly:
-- A real code/test/type/lint defect → fix it (Step 4).
+- A real code/test/type/lint defect in the mechanical class → fix it (Step 4).
+- Any other real defect → return `ESCALATE` with the job, the error, and the local reproduction
+  command under `CONTEXT`. Do not push anything for it.
 - Flaky infra (network blip, runner issue, transient timeout unrelated to the change) → re-run the
   job/pipeline once before touching any code; don't "fix" something that isn't broken.
 - Something requiring a product decision or repo-owner input → stop and ask, per **Authorization**.
@@ -214,7 +232,7 @@ gh pr view "$PR_NUMBER" --json mergeable,mergeStateStatus,reviewDecision
 ```
 
 If blocked by anything other than the pipeline (conflicts, unresolved threads, missing approvals,
-branch protection), stop and report exactly what's blocking it, per **Authorization**.
+branch protection), return `BLOCKED` with exactly what is blocking it, per **Authorization**.
 
 ---
 
@@ -255,29 +273,44 @@ git checkout <default-branch>
 git pull
 ```
 
-If local uncommitted changes block the checkout, stop and ask - don't stash or discard anything
-without confirmation.
+If local uncommitted changes block the checkout, return `NEEDS_USER` - don't stash or discard
+anything without confirmation.
 
 ---
 
-## Step 8 - Offer the next task
+## Step 8 - Hand back
 
-Offer, don't launch automatically:
-
-> "Merged. Want me to start the next task? I can run `/start-task`."
-
-If the user accepts and names or implies a task, invoke the `start-task` skill inline for that task.
-Never wrap it in a subagent - the global `AGENTS.md` forbids wrapping a skill in an agent, and `start-task`
-decides its own delegation. If the user doesn't specify a task, ask what to
-start, or offer "next task" resolution the same way `start-task` itself would.
+The merge is done. Set `NEXT` to offer the user `/start-task`; the main session makes the offer and,
+if accepted, invokes `start-task` inline. Never launch it from here.
 
 ---
 
-## Final Report
+## Return
 
-Always summarize:
-- MR/PR merged, with its URL.
-- Any pipeline fixes made: what failed, what the real fix was, files touched, commit hash(es).
-- Number of fix-push-recheck cycles used.
-- Default branch checked out and pulled.
-- Whether `/start-task` was offered and what happened.
+Return exactly this block and nothing else. Status priority: `BLOCKED` > `ESCALATE` > `NEEDS_USER` >
+`MERGED`.
+
+```
+STATUS: MERGED | ESCALATE | NEEDS_USER | BLOCKED
+MR: <url> - <merged | open: reason>
+PIPELINE: <green | red: failing job(s) | none configured>
+FIXED_HERE: <what failed - the fix - files - commit sha> | none
+ESCALATE: <job or file:line - error - condition it failed> | none
+CYCLES: <fix-push-recheck cycles used>/3
+BRANCH: <default branch checked out and pulled | still on <branch>>
+QUESTIONS: <lettered choices for the user> | none
+CONTEXT: <job URLs, reproduction commands> | none
+NEXT: <the continuation step below that applies>
+```
+
+## Continuation
+
+For the main session, after a return (also stated in `NEXT`):
+
+- `ESCALATE` - resolve the items per `references/model-escalation.md`. Under this skill's Authorization and
+  Rules, validate locally, commit with the commit hygiene above, push, then re-invoke `/git-merge`.
+  No user prompt is needed for this - it is the pipeline fix the invocation authorized.
+- `NEEDS_USER` - ask the questions, act on the answer, re-invoke.
+- `BLOCKED` - report exactly what blocks the merge.
+- `MERGED` - report the MR URL, fixes made, cycles used, and the branch state, then offer:
+  "Merged. Want me to start the next task? I can run `/start-task`."
